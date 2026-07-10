@@ -18,6 +18,7 @@ import {
   type MaywoodEvent,
   type Venue,
 } from "@/lib/events";
+import SiteNav from "@/components/SiteNav";
 
 interface MaywoodMapProps {
   apiKey: string;
@@ -200,6 +201,9 @@ export default function MaywoodMap({ apiKey, mapId }: MaywoodMapProps) {
         {/* Rail */}
         <aside className="order-2 flex w-full flex-col border-line bg-surface lg:order-1 lg:h-full lg:w-[400px] lg:border-r">
           <header className="border-b border-line px-5 pb-4 pt-5">
+            <div className="mb-3">
+              <SiteNav />
+            </div>
             <div className="flex items-center gap-2">
               <span className="text-2xl" aria-hidden>
                 🌳
@@ -210,7 +214,7 @@ export default function MaywoodMap({ apiKey, mapId }: MaywoodMapProps) {
             </div>
             <p className="mt-1 text-sm leading-snug text-ink-soft">
               Every summer event across the Village of Maywood on one map. Filter by day,
-              tap a pin, get directions.
+              tap a pin, get directions. Plan your itinerary in the Planner tab.
             </p>
 
             {/* Date filter */}
