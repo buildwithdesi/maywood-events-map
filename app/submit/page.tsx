@@ -3,7 +3,7 @@ import SubmitEventForm from "@/components/SubmitEventForm";
 
 export default function SubmitPage() {
   return (
-    <GateGuard>
+    <GateGuard intent="submit">
       <SubmitEventForm />
     </GateGuard>
   );

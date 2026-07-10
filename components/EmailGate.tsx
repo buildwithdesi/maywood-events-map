@@ -2,13 +2,15 @@
 
 import { FormEvent, useState } from "react";
 
-const STORAGE_KEY = "maywood-events-gate-v1";
+import { persistGateUnlock } from "@/lib/gate";
 
 interface EmailGateProps {
   onUnlocked: () => void;
+  /** Where they land after unlock. Planner deep-links stay on planner. */
+  intent?: "map" | "planner" | "submit";
 }
 
-export default function EmailGate({ onUnlocked }: EmailGateProps) {
+export default function EmailGate({ onUnlocked, intent = "map" }: EmailGateProps) {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -37,16 +39,20 @@ export default function EmailGate({ onUnlocked }: EmailGateProps) {
         return;
       }
 
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({ email: email.trim().toLowerCase(), at: Date.now() })
-      );
+      persistGateUnlock(email.trim());
       onUnlocked();
     } catch {
       setError("Network error. Check your connection and try again.");
       setLoading(false);
     }
   }
+
+  const nextLine =
+    intent === "planner"
+      ? "One time on this browser. After this you go straight into the Planner with every Maywood event."
+      : intent === "submit"
+        ? "One time on this browser. Next we take you to the Map so you can explore, then plan or submit."
+        : "One time on this browser. Next stop: the Map to explore events. When you're ready, open the Planner to build your day.";
 
   return (
     <div className="fixed inset-0 z-[100] overflow-y-auto overscroll-contain bg-[#0A0B0D]">
@@ -59,18 +65,28 @@ export default function EmailGate({ onUnlocked }: EmailGateProps) {
         }}
       />
 
-      {/* 100dvh + safe padding: centers when it fits, scrolls without clipping when it doesn't */}
       <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-lg items-center justify-center px-4 py-8">
         <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#12131A] p-5 shadow-2xl sm:p-6">
           <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-[#40FF78]">
             Maywood · Summer 2026
           </p>
           <h1 className="mt-2 font-display text-2xl font-bold tracking-tight text-white sm:text-[1.75rem]">
-            Enter to explore the map
+            Enter to explore Maywood
           </h1>
           <p className="mt-1.5 text-sm leading-snug text-[#F5F5F7]/70">
-            Drop your email to unlock every Maywood summer event on one interactive map.
+            {nextLine}
           </p>
+
+          <ol className="mt-3 space-y-1.5 rounded-xl border border-white/10 bg-[#0A0B0D]/60 px-3 py-2.5 text-xs text-[#F5F5F7]/65">
+            <li>
+              <span className="font-semibold text-[#40FF78]">1. Map</span> — see every
+              event on the village map
+            </li>
+            <li>
+              <span className="font-semibold text-[#FFDB40]">2. Planner</span> — save
+              events, build your day, get travel times
+            </li>
+          </ol>
 
           <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-2.5">
             <label className="flex flex-col gap-1">
@@ -113,14 +129,19 @@ export default function EmailGate({ onUnlocked }: EmailGateProps) {
               disabled={loading || !email.trim()}
               className="mt-1 rounded-xl bg-[#40FF78] px-4 py-2.5 font-display text-sm font-bold text-[#0A0B0D] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {loading ? "Unlocking…" : "Unlock the map"}
+              {loading
+                ? "Unlocking…"
+                : intent === "planner"
+                  ? "Unlock & open planner"
+                  : "Unlock & open map"}
             </button>
           </form>
 
           <div className="mt-4 border-t border-white/10 pt-3">
             <p className="text-[11px] leading-snug text-[#F5F5F7]/50">
               By continuing you agree we can email you about Maywood community events and
-              Digital Alchemy updates. No spam.
+              Digital Alchemy updates. No spam. You will not see this gate again on this
+              browser.
             </p>
             <div className="mt-3 flex flex-col gap-2 sm:flex-row">
               <a
@@ -147,16 +168,5 @@ export default function EmailGate({ onUnlocked }: EmailGateProps) {
   );
 }
 
-export function hasGateUnlock(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return false;
-    const parsed = JSON.parse(raw) as { email?: string };
-    return Boolean(parsed.email);
-  } catch {
-    return false;
-  }
-}
-
-export { STORAGE_KEY };
+export { hasGateUnlock } from "@/lib/gate";
+export { STORAGE_KEY } from "@/lib/gate";

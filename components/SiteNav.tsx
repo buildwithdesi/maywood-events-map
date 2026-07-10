@@ -13,7 +13,7 @@ export default function SiteNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex items-center gap-1 overflow-x-auto">
+    <nav className="flex items-center gap-1 overflow-x-auto" aria-label="Main">
       {LINKS.map((link) => {
         const active =
           link.href === "/"

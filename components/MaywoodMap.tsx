@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import {
   AdvancedMarker,
   APIProvider,
@@ -19,6 +20,7 @@ import {
   type Venue,
 } from "@/lib/events";
 import SiteNav from "@/components/SiteNav";
+import { consumeJustUnlocked } from "@/lib/gate";
 
 interface MaywoodMapProps {
   apiKey: string;
@@ -144,7 +146,12 @@ export default function MaywoodMap({ apiKey, mapId }: MaywoodMapProps) {
   );
   const [selectedVenueKey, setSelectedVenueKey] = useState<string | null>(null);
   const [focus, setFocus] = useState<{ lat: number; lng: number } | null>(null);
+  const [showWelcome, setShowWelcome] = useState(false);
   const railRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (consumeJustUnlocked()) setShowWelcome(true);
+  }, []);
 
   const filteredEvents = useMemo(
     () =>
@@ -213,8 +220,37 @@ export default function MaywoodMap({ apiKey, mapId }: MaywoodMapProps) {
               </h1>
             </div>
             <p className="mt-1 text-sm leading-snug text-ink-soft">
-              Every summer event across the Village of Maywood on one map. Filter by day,
-              tap a pin, get directions. Plan your itinerary in the Planner tab.
+              <strong className="font-semibold text-ink">Map</strong> = see what&apos;s
+              happening around the village. Browse pins, filter by day, get directions.
+            </p>
+
+            {showWelcome && (
+              <div className="mt-3 rounded-xl border border-brand/30 bg-brand-soft px-3 py-2.5 text-sm text-ink">
+                <p className="font-semibold">You&apos;re in. Start on the map.</p>
+                <p className="mt-1 text-xs text-ink-soft">
+                  Explore events here first. When you&apos;re ready to build your personal
+                  day, open the Planner.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowWelcome(false)}
+                  className="mt-2 text-xs font-semibold text-brand-dark underline"
+                >
+                  Got it
+                </button>
+              </div>
+            )}
+
+            <Link
+              href="/planner"
+              className="mt-3 flex w-full items-center justify-between rounded-xl bg-brand px-4 py-3 font-display text-sm font-bold text-white transition hover:bg-brand-dark"
+            >
+              <span>Plan your day →</span>
+              <span className="text-xs font-medium opacity-90">All events · travel times</span>
+            </Link>
+            <p className="mt-1.5 text-[11px] leading-snug text-ink-soft">
+              Planner is where you save events, build an itinerary, export, and share.
+              Same full event list as the map.
             </p>
 
             {/* Date filter */}

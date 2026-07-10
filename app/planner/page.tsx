@@ -3,7 +3,7 @@ import MaywoodPlanner from "@/components/planner/MaywoodPlanner";
 
 export default function PlannerPage() {
   return (
-    <GateGuard>
+    <GateGuard intent="planner">
       <MaywoodPlanner />
     </GateGuard>
   );

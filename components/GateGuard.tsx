@@ -1,10 +1,23 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 
-import EmailGate, { hasGateUnlock } from "@/components/EmailGate";
+import EmailGate from "@/components/EmailGate";
+import { hasGateUnlock } from "@/lib/gate";
 
-export default function GateGuard({ children }: { children: ReactNode }) {
+interface GateGuardProps {
+  children: ReactNode;
+  /**
+   * map = after unlock go to / (default home)
+   * planner = stay on planner (deep link)
+   * submit = after unlock go to map first
+   */
+  intent?: "map" | "planner" | "submit";
+}
+
+export default function GateGuard({ children, intent = "map" }: GateGuardProps) {
+  const router = useRouter();
   const [ready, setReady] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
 
@@ -12,6 +25,15 @@ export default function GateGuard({ children }: { children: ReactNode }) {
     setUnlocked(hasGateUnlock());
     setReady(true);
   }, []);
+
+  function handleUnlocked() {
+    if (intent === "planner") {
+      setUnlocked(true);
+      return;
+    }
+    // Map-first hierarchy for home + submit entry points
+    router.replace("/");
+  }
 
   if (!ready) {
     return (
@@ -22,7 +44,7 @@ export default function GateGuard({ children }: { children: ReactNode }) {
   }
 
   if (!unlocked) {
-    return <EmailGate onUnlocked={() => setUnlocked(true)} />;
+    return <EmailGate intent={intent} onUnlocked={handleUnlocked} />;
   }
 
   return <>{children}</>;

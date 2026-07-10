@@ -216,8 +216,9 @@ export default function MaywoodPlanner() {
             Plan your Maywood summer
           </h1>
           <p className="text-sm text-ink-soft">
-            Pick events, build your day, export, and share. Same vibe as the CTW
-            planner, built for Maywood.
+            Every event from the map lives here too. Save what you want, sort your day,
+            see travel time between stops, then export or share. The map is for looking
+            around. This is for building your personal itinerary.
           </p>
           <label className="flex flex-col gap-1.5">
             <span className="text-xs font-semibold uppercase tracking-wider text-ink-soft">
@@ -257,6 +258,9 @@ export default function MaywoodPlanner() {
               <h1 className="font-display text-xl font-bold text-ink">
                 Maywood Summer Planner
               </h1>
+              <p className="text-xs text-ink-soft">
+                All {PLANNER_EVENTS.length} events · save, order your day, travel times
+              </p>
             </div>
             <SiteNav />
           </div>

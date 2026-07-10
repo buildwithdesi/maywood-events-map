@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 
 import DaFooter from "@/components/DaFooter";
-import EmailGate, { hasGateUnlock } from "@/components/EmailGate";
+import EmailGate from "@/components/EmailGate";
 import MaywoodMap from "@/components/MaywoodMap";
+import { hasGateUnlock } from "@/lib/gate";
 
 interface MapShellProps {
   apiKey: string;
@@ -29,7 +30,7 @@ export default function MapShell({ apiKey, mapId }: MapShellProps) {
   }
 
   if (!unlocked) {
-    return <EmailGate onUnlocked={() => setUnlocked(true)} />;
+    return <EmailGate intent="map" onUnlocked={() => setUnlocked(true)} />;
   }
 
   return (
