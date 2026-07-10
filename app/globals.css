@@ -1,26 +1,84 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f4f1ea;
+  --surface: #ffffff;
+  --surface-muted: #f7f5ef;
+  --ink: #14261d;
+  --ink-soft: #4b5a52;
+  --line: #e2ddd0;
+  --brand: #0f7a4d;
+  --brand-dark: #0a5636;
+  --brand-soft: #e6f2ec;
 }
 
 @theme inline {
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-brand-dark: var(--brand-dark);
+  --color-brand-soft: var(--brand-soft);
+  --font-display: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  height: 100%;
 }
 
 body {
   background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Google Maps InfoWindow cleanup so our custom card owns the look */
+.gm-style .gm-style-iw-c {
+  padding: 0 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 18px 40px -18px rgba(15, 40, 28, 0.5) !important;
+}
+.gm-style .gm-style-iw-d {
+  overflow: hidden !important;
+}
+.gm-style .gm-style-iw-tc {
+  display: none;
+}
+
+/* Thin, calm scrollbars in the event rail */
+.event-rail {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+.event-rail::-webkit-scrollbar {
+  width: 8px;
+}
+.event-rail::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 999px;
+}
+
+@keyframes marker-pop {
+  0% {
+    transform: translateY(4px) scale(0.85);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
 }
