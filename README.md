@@ -46,6 +46,23 @@ Events at the same venue (for example the three at Veterans Park) automatically 
 
 To add or edit events, edit `data/events.json`. Set `"geocoded": false` on any event whose address changed, then re-run the geocode script (below) to refresh its pin.
 
+## Troubleshooting: InvalidKeyMapError
+
+If the console shows `InvalidKeyMapError`, the key is present but Google rejected it. Fix in Google Cloud:
+
+1. **Billing** must be enabled on the project (card on file).
+2. Enable **Maps JavaScript API** (APIs & Services → Library).
+3. Open the key → **Application restrictions** → HTTP referrers must include:
+   - `http://localhost:3000/*`
+   - `http://localhost:3001/*`
+   - `https://maywood-events-map.vercel.app/*`
+   - `https://*.vercel.app/*` (optional, for preview deploys)
+4. **API restrictions** → allow at least **Maps JavaScript API**.
+5. Wait 1–5 minutes after saving, then hard-refresh the site (Ctrl+Shift+R).
+
+`ethereum` / `evmAsk.js` errors are from a crypto wallet browser extension, not this app.
+Ad-blocker `ERR_BLOCKED_BY_CLIENT` on `csp_test` is usually harmless.
+
 ## Getting the map running
 
 ### 1. Create a Google Cloud project + Maps key

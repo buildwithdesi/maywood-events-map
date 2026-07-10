@@ -7,6 +7,7 @@ import {
   APIProvider,
   InfoWindow,
   Map as GoogleMap,
+  Marker,
   useMap,
 } from "@vis.gl/react-google-maps";
 import {
@@ -91,14 +92,32 @@ function VenueMarker({
   venue,
   active,
   onSelect,
+  useAdvanced,
 }: {
   venue: Venue;
   active: boolean;
   onSelect: (venue: Venue) => void;
+  useAdvanced: boolean;
 }) {
   const primary = venue.events[0];
   const category = CATEGORY_MAP[primary.category];
   const multi = venue.events.length > 1;
+
+  if (!useAdvanced) {
+    return (
+      <Marker
+        position={{ lat: venue.lat, lng: venue.lng }}
+        onClick={() => onSelect(venue)}
+        zIndex={active ? 999 : undefined}
+        title={`${venue.venue}${multi ? ` (${venue.events.length})` : ""}`}
+        label={{
+          text: category.emoji,
+          fontSize: "16px",
+          className: "maywood-marker-label",
+        }}
+      />
+    );
+  }
 
   return (
     <AdvancedMarker
@@ -201,9 +220,18 @@ export default function MaywoodMap({ apiKey, mapId }: MaywoodMapProps) {
   }
 
   const allCategoriesOn = activeCategories.size === ALL_CATEGORY_IDS.length;
+  const useAdvanced = Boolean(mapId);
+  const [mapError, setMapError] = useState<string | null>(null);
 
   return (
-    <APIProvider apiKey={apiKey}>
+    <APIProvider
+      apiKey={apiKey}
+      onError={() =>
+        setMapError(
+          "Google Maps rejected this API key (InvalidKeyMapError). Enable Maps JavaScript API, turn on billing, and add https://maywood-events-map.vercel.app/* to the key's HTTP referrer list."
+        )
+      }
+    >
       <div className="flex h-full w-full flex-col overflow-hidden lg:flex-row">
         {/* Rail */}
         <aside className="order-2 flex w-full flex-col border-line bg-surface lg:order-1 lg:h-full lg:w-[400px] lg:border-r">
@@ -211,6 +239,12 @@ export default function MaywoodMap({ apiKey, mapId }: MaywoodMapProps) {
             <div className="mb-3">
               <SiteNav />
             </div>
+            {mapError && (
+              <div className="mb-3 rounded-xl border border-red-300 bg-red-50 px-3 py-2.5 text-xs leading-snug text-red-800">
+                <p className="font-semibold">Map key problem</p>
+                <p className="mt-1">{mapError}</p>
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <span className="text-2xl" aria-hidden>
                 🌳
@@ -375,7 +409,7 @@ export default function MaywoodMap({ apiKey, mapId }: MaywoodMapProps) {
         {/* Map */}
         <div className="order-1 h-[45vh] w-full lg:order-2 lg:h-full lg:flex-1">
           <GoogleMap
-            mapId={mapId}
+            {...(useAdvanced ? { mapId } : {})}
             defaultCenter={MAYWOOD_CENTER}
             defaultZoom={13}
             gestureHandling="greedy"
@@ -392,6 +426,7 @@ export default function MaywoodMap({ apiKey, mapId }: MaywoodMapProps) {
                 venue={venue}
                 active={venue.key === selectedVenueKey}
                 onSelect={selectVenue}
+                useAdvanced={useAdvanced}
               />
             ))}
             {selectedVenue && (

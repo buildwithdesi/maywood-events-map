@@ -1,8 +1,9 @@
 import MapShell from "@/components/MapShell";
 
 export default function Home() {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-  const mapId = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID || "DEMO_MAP_ID";
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim();
+  // Only pass a real Cloud Map ID. Fake "DEMO_MAP_ID" breaks Advanced Markers.
+  const mapId = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID?.trim() || "";
 
   if (!apiKey) {
     return (
