@@ -7,12 +7,7 @@ import EmailGate from "@/components/EmailGate";
 import MaywoodMap from "@/components/MaywoodMap";
 import { hasGateUnlock } from "@/lib/gate";
 
-interface MapShellProps {
-  apiKey: string;
-  mapId: string;
-}
-
-export default function MapShell({ apiKey, mapId }: MapShellProps) {
+export default function MapShell() {
   const [ready, setReady] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
 
@@ -35,10 +30,10 @@ export default function MapShell({ apiKey, mapId }: MapShellProps) {
 
   return (
     <div className="flex h-[100dvh] flex-col overflow-hidden">
-      <div className="min-h-0 flex-1">
-        <MaywoodMap apiKey={apiKey} mapId={mapId} />
+      <div className="min-h-0 flex-1 overflow-hidden">
+        <MaywoodMap />
       </div>
-      <DaFooter />
+      <DaFooter className="hidden md:block" />
     </div>
   );
 }

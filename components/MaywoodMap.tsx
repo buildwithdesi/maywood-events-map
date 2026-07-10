@@ -2,14 +2,19 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { Map as MapLibre, Marker, Popup } from "react-map-gl/maplibre";
+import type { MapRef } from "react-map-gl/maplibre";
+import "maplibre-gl/dist/maplibre-gl.css";
 import {
-  AdvancedMarker,
-  APIProvider,
-  InfoWindow,
-  Map as GoogleMap,
-  Marker,
-  useMap,
-} from "@vis.gl/react-google-maps";
+  ArrowRight,
+  ArrowSquareOut,
+  CaretDown,
+  Funnel,
+  MapPin,
+  NavigationArrow,
+  Tree,
+  X,
+} from "@phosphor-icons/react";
 import {
   CATEGORIES,
   CATEGORY_MAP,
@@ -20,13 +25,12 @@ import {
   type MaywoodEvent,
   type Venue,
 } from "@/lib/events";
+import { CategoryGlyph } from "@/components/CategoryIcon";
 import SiteNav from "@/components/SiteNav";
 import { consumeJustUnlocked } from "@/lib/gate";
 
-interface MaywoodMapProps {
-  apiKey: string;
-  mapId: string;
-}
+// Keyless vector tiles. No API key, no billing, no referrer rules.
+const MAP_STYLE = "https://tiles.openfreemap.org/styles/positron";
 
 interface DateChip {
   date: string;
@@ -54,118 +58,59 @@ function directionsUrl(event: MaywoodEvent): string {
   return `https://www.google.com/maps/dir/?api=1&destination=${event.lat},${event.lng}`;
 }
 
-function MapController({
-  venues,
-  fitKey,
-  focus,
-}: {
-  venues: Venue[];
-  fitKey: string;
-  focus: { lat: number; lng: number } | null;
-}) {
-  const map = useMap();
-
-  useEffect(() => {
-    if (!map || venues.length === 0) return;
-    const bounds = new google.maps.LatLngBounds();
-    venues.forEach((v) => bounds.extend({ lat: v.lat, lng: v.lng }));
-    if (venues.length === 1) {
-      map.setCenter({ lat: venues[0].lat, lng: venues[0].lng });
-      map.setZoom(15);
-    } else {
-      map.fitBounds(bounds, 90);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, fitKey]);
-
-  useEffect(() => {
-    if (!map || !focus) return;
-    map.panTo(focus);
-    const z = map.getZoom() ?? 0;
-    if (z < 15) map.setZoom(15);
-  }, [map, focus]);
-
-  return null;
-}
-
-function VenueMarker({
+function VenuePin({
   venue,
   active,
-  onSelect,
-  useAdvanced,
 }: {
   venue: Venue;
   active: boolean;
-  onSelect: (venue: Venue) => void;
-  useAdvanced: boolean;
 }) {
   const primary = venue.events[0];
   const category = CATEGORY_MAP[primary.category];
   const multi = venue.events.length > 1;
 
-  if (!useAdvanced) {
-    return (
-      <Marker
-        position={{ lat: venue.lat, lng: venue.lng }}
-        onClick={() => onSelect(venue)}
-        zIndex={active ? 999 : undefined}
-        title={`${venue.venue}${multi ? ` (${venue.events.length})` : ""}`}
-        label={{
-          text: category.emoji,
-          fontSize: "16px",
-          className: "maywood-marker-label",
-        }}
-      />
-    );
-  }
-
   return (
-    <AdvancedMarker
-      position={{ lat: venue.lat, lng: venue.lng }}
-      onClick={() => onSelect(venue)}
-      zIndex={active ? 999 : undefined}
-      title={venue.venue}
+    <div
+      style={{
+        transform: active ? "scale(1.14)" : "scale(1)",
+        transition: "transform 200ms cubic-bezier(0.16, 1, 0.3, 1)",
+      }}
+      className="relative flex cursor-pointer flex-col items-center"
     >
       <div
+        className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white text-white"
         style={{
-          transform: active ? "scale(1.12)" : "scale(1)",
-          transition: "transform 160ms ease",
+          background: category.color,
+          boxShadow: active
+            ? `0 0 0 5px ${category.color}2e, 0 12px 24px -10px rgba(15, 40, 28, 0.55)`
+            : "0 8px 18px -8px rgba(15, 40, 28, 0.45)",
         }}
-        className="relative flex -translate-y-1 cursor-pointer flex-col items-center"
       >
-        <div
-          className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-white text-lg shadow-lg"
-          style={{
-            background: category.color,
-            boxShadow: active
-              ? `0 0 0 4px ${category.color}33, 0 10px 22px -8px rgba(0,0,0,0.6)`
-              : "0 8px 18px -8px rgba(0,0,0,0.5)",
-          }}
-        >
-          <span aria-hidden>{category.emoji}</span>
-        </div>
-        <div
-          className="mt-[-3px] h-3 w-3 rotate-45 border-b-2 border-r-2 border-white"
-          style={{ background: category.color }}
-        />
-        {multi && (
-          <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-ink px-1 text-[11px] font-bold leading-none text-white">
-            {venue.events.length}
-          </span>
-        )}
+        <CategoryGlyph id={primary.category} size={18} weight="fill" />
       </div>
-    </AdvancedMarker>
+      <div
+        className="mt-[-4px] h-2.5 w-2.5 rotate-45 border-b-2 border-r-2 border-white"
+        style={{ background: category.color }}
+      />
+      {multi && (
+        <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-ink px-1 font-mono text-[10px] font-bold leading-none text-white">
+          {venue.events.length}
+        </span>
+      )}
+    </div>
   );
 }
 
-export default function MaywoodMap({ apiKey, mapId }: MaywoodMapProps) {
+export default function MaywoodMap() {
   const [selectedDate, setSelectedDate] = useState<string>("all");
   const [activeCategories, setActiveCategories] = useState<Set<CategoryId>>(
     new Set(ALL_CATEGORY_IDS)
   );
   const [selectedVenueKey, setSelectedVenueKey] = useState<string | null>(null);
-  const [focus, setFocus] = useState<{ lat: number; lng: number } | null>(null);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [mapReady, setMapReady] = useState(false);
+  const mapRef = useRef<MapRef>(null);
   const railRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -199,6 +144,38 @@ export default function MaywoodMap({ apiKey, mapId }: MaywoodMapProps) {
     }
   }, [venues, selectedVenueKey]);
 
+  // Re-fit whenever filters change the visible venue set.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady || venues.length === 0) return;
+    if (venues.length === 1) {
+      map.flyTo({
+        center: [venues[0].lng, venues[0].lat],
+        zoom: 15,
+        duration: 700,
+      });
+      return;
+    }
+    let minLng = Infinity;
+    let minLat = Infinity;
+    let maxLng = -Infinity;
+    let maxLat = -Infinity;
+    for (const v of venues) {
+      minLng = Math.min(minLng, v.lng);
+      minLat = Math.min(minLat, v.lat);
+      maxLng = Math.max(maxLng, v.lng);
+      maxLat = Math.max(maxLat, v.lat);
+    }
+    map.fitBounds(
+      [
+        [minLng, minLat],
+        [maxLng, maxLat],
+      ],
+      { padding: 90, duration: 700, maxZoom: 15.5 }
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fitKey, mapReady]);
+
   function toggleCategory(id: CategoryId) {
     setActiveCategories((prev) => {
       const next = new Set(prev);
@@ -208,154 +185,331 @@ export default function MaywoodMap({ apiKey, mapId }: MaywoodMapProps) {
     });
   }
 
+  function focusOn(lat: number, lng: number) {
+    const map = mapRef.current;
+    if (!map) return;
+    const zoom = map.getZoom() ?? 0;
+    map.flyTo({ center: [lng, lat], zoom: Math.max(zoom, 15), duration: 600 });
+  }
+
   function selectVenue(venue: Venue) {
     setSelectedVenueKey(venue.key);
-    setFocus({ lat: venue.lat, lng: venue.lng });
+    focusOn(venue.lat, venue.lng);
   }
 
   function selectEvent(event: MaywoodEvent) {
     const key = `${event.lat.toFixed(5)},${event.lng.toFixed(5)}`;
     setSelectedVenueKey(key);
-    setFocus({ lat: event.lat, lng: event.lng });
+    focusOn(event.lat, event.lng);
   }
 
   const allCategoriesOn = activeCategories.size === ALL_CATEGORY_IDS.length;
-  const useAdvanced = Boolean(mapId);
-  const [mapError, setMapError] = useState<string | null>(null);
 
   return (
-    <APIProvider
-      apiKey={apiKey}
-      onError={() =>
-        setMapError(
-          "Google Maps rejected this API key (InvalidKeyMapError). Enable Maps JavaScript API, turn on billing, and add https://maywood-events-map.vercel.app/* to the key's HTTP referrer list."
-        )
-      }
-    >
-      <div className="flex h-full w-full flex-col overflow-hidden lg:flex-row">
-        {/* Rail */}
-        <aside className="order-2 flex w-full flex-col border-line bg-surface lg:order-1 lg:h-full lg:w-[400px] lg:border-r">
-          <header className="border-b border-line px-5 pb-4 pt-5">
-            <div className="mb-3">
-              <SiteNav />
-            </div>
-            {mapError && (
-              <div className="mb-3 rounded-xl border border-red-300 bg-red-50 px-3 py-2.5 text-xs leading-snug text-red-800">
-                <p className="font-semibold">Map key problem</p>
-                <p className="mt-1">{mapError}</p>
-              </div>
-            )}
-            <div className="flex items-center gap-2">
-              <span className="text-2xl" aria-hidden>
-                🌳
-              </span>
-              <h1 className="font-display text-xl font-bold tracking-tight text-ink">
-                Maywood Summer &rsquo;26
-              </h1>
-            </div>
-            <p className="mt-1 text-sm leading-snug text-ink-soft">
-              <strong className="font-semibold text-ink">Map</strong> = see what&apos;s
-              happening around the village. Browse pins, filter by day, get directions.
-            </p>
+    <div className="flex h-full min-h-0 w-full flex-col overflow-hidden lg:flex-row">
+      {/* Map — compact strip on mobile so the event list gets the screen */}
+      <div className="order-1 h-[28vh] max-h-[220px] w-full shrink-0 lg:order-2 lg:h-full lg:max-h-none lg:min-h-0 lg:flex-1">
+        <MapLibre
+          ref={mapRef}
+          initialViewState={{
+            longitude: MAYWOOD_CENTER.lng,
+            latitude: MAYWOOD_CENTER.lat,
+            zoom: 13,
+          }}
+          mapStyle={MAP_STYLE}
+          onLoad={() => setMapReady(true)}
+          onClick={() => setSelectedVenueKey(null)}
+          style={{ width: "100%", height: "100%" }}
+          attributionControl={{ compact: true }}
+        >
+          {venues.map((venue) => (
+            <Marker
+              key={venue.key}
+              longitude={venue.lng}
+              latitude={venue.lat}
+              anchor="bottom"
+              style={{ zIndex: venue.key === selectedVenueKey ? 5 : undefined }}
+              onClick={(e) => {
+                e.originalEvent.stopPropagation();
+                selectVenue(venue);
+              }}
+            >
+              <VenuePin venue={venue} active={venue.key === selectedVenueKey} />
+            </Marker>
+          ))}
 
-            {showWelcome && (
-              <div className="mt-3 rounded-xl border border-brand/30 bg-brand-soft px-3 py-2.5 text-sm text-ink">
-                <p className="font-semibold">You&apos;re in. Start on the map.</p>
-                <p className="mt-1 text-xs text-ink-soft">
-                  Explore events here first. When you&apos;re ready to build your personal
-                  day, open the Planner.
-                </p>
+          {selectedVenue && (
+            <Popup
+              longitude={selectedVenue.lng}
+              latitude={selectedVenue.lat}
+              anchor="bottom"
+              offset={52}
+              closeButton={false}
+              closeOnClick={false}
+              maxWidth="300px"
+              onClose={() => setSelectedVenueKey(null)}
+            >
+              <div className="relative max-w-[280px] p-4 font-body">
                 <button
                   type="button"
-                  onClick={() => setShowWelcome(false)}
-                  className="mt-2 text-xs font-semibold text-brand-dark underline"
+                  onClick={() => setSelectedVenueKey(null)}
+                  aria-label="Close"
+                  className="absolute right-2.5 top-2.5 flex h-6 w-6 items-center justify-center rounded-full bg-surface-muted text-ink-soft transition hover:bg-line hover:text-ink"
                 >
-                  Got it
+                  <X size={12} weight="bold" />
                 </button>
-              </div>
-            )}
-
-            <Link
-              href="/planner"
-              className="mt-3 flex w-full items-center justify-between rounded-xl bg-brand px-4 py-3 font-display text-sm font-bold text-white transition hover:bg-brand-dark"
-            >
-              <span>Plan your day →</span>
-              <span className="text-xs font-medium opacity-90">All events · travel times</span>
-            </Link>
-            <p className="mt-1.5 text-[11px] leading-snug text-ink-soft">
-              Planner is where you save events, build an itinerary, export, and share.
-              Same full event list as the map.
-            </p>
-
-            {/* Date filter */}
-            <div className="mt-4">
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-ink-soft">
-                Day
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                <FilterChip
-                  active={selectedDate === "all"}
-                  onClick={() => setSelectedDate("all")}
-                >
-                  All
-                </FilterChip>
-                {DATE_CHIPS.map((chip) => (
-                  <FilterChip
-                    key={chip.date}
-                    active={selectedDate === chip.date}
-                    onClick={() => setSelectedDate(chip.date)}
-                  >
-                    {chip.label}
-                  </FilterChip>
-                ))}
-              </div>
-            </div>
-
-            {/* Category filter */}
-            <div className="mt-4">
-              <div className="mb-2 flex items-center justify-between">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-soft">
-                  Categories
+                <p className="pr-6 font-display text-sm font-bold text-ink">
+                  {selectedVenue.venue}
                 </p>
-                {!allCategoriesOn && (
-                  <button
-                    onClick={() => setActiveCategories(new Set(ALL_CATEGORY_IDS))}
-                    className="text-[11px] font-semibold text-brand hover:underline"
-                  >
-                    Reset
-                  </button>
-                )}
+                <p className="mt-0.5 text-xs text-ink-soft">{selectedVenue.address}</p>
+                <div className="mt-3 flex flex-col gap-3">
+                  {selectedVenue.events.map((event) => {
+                    const category = CATEGORY_MAP[event.category];
+                    return (
+                      <div
+                        key={event.id}
+                        className="border-t border-line pt-3 first:border-t-0 first:pt-0"
+                      >
+                        <div className="flex items-start gap-2">
+                          <span
+                            className="mt-0.5 shrink-0"
+                            style={{ color: category.color }}
+                            aria-hidden
+                          >
+                            <CategoryGlyph id={event.category} size={15} weight="fill" />
+                          </span>
+                          <div>
+                            <p className="font-display text-sm font-semibold leading-tight text-ink">
+                              {event.title}
+                            </p>
+                            <p className="mt-0.5 font-mono text-[11px] font-medium text-brand-dark">
+                              {event.dateLabel} · {event.timeLabel}
+                            </p>
+                            <p className="mt-1 text-xs leading-snug text-ink-soft">
+                              {event.description}
+                            </p>
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {event.links.map((link) => (
+                                <a
+                                  key={link.url}
+                                  href={link.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="flex items-center gap-1 rounded-full bg-brand-soft px-2.5 py-1 text-[11px] font-semibold text-brand-dark transition hover:bg-brand hover:text-white"
+                                >
+                                  {link.label}
+                                  <ArrowSquareOut size={10} weight="bold" />
+                                </a>
+                              ))}
+                              <a
+                                href={directionsUrl(event)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex items-center gap-1 rounded-full bg-ink px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-brand-dark"
+                              >
+                                <NavigationArrow size={10} weight="fill" />
+                                Directions
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-              <div className="flex flex-wrap gap-1.5">
-                {CATEGORIES.map((category) => {
-                  const on = activeCategories.has(category.id);
-                  return (
-                    <button
-                      key={category.id}
-                      onClick={() => toggleCategory(category.id)}
-                      className="flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition"
-                      style={{
-                        borderColor: on ? category.color : "var(--line)",
-                        background: on ? `${category.color}14` : "transparent",
-                        color: on ? "var(--ink)" : "var(--ink-soft)",
-                        opacity: on ? 1 : 0.6,
-                      }}
-                    >
-                      <span aria-hidden>{category.emoji}</span>
-                      {category.label}
-                    </button>
-                  );
-                })}
+            </Popup>
+          )}
+        </MapLibre>
+      </div>
+
+      {/* Rail */}
+      <aside className="order-2 flex min-h-0 w-full flex-1 flex-col border-line bg-surface lg:order-1 lg:h-full lg:w-[400px] lg:flex-none lg:border-r">
+        {/* Compact mobile toolbar */}
+        <div className="shrink-0 border-b border-line px-3 py-2 lg:hidden">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-2">
+              <span
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand text-white"
+                aria-hidden
+              >
+                <Tree size={14} weight="fill" />
+              </span>
+              <div className="min-w-0">
+                <p className="truncate font-display text-sm font-bold leading-none text-ink">
+                  Maywood &rsquo;26
+                </p>
+                <p className="mt-0.5 font-mono text-[10px] text-ink-soft">
+                  {filteredEvents.length} events
+                </p>
               </div>
             </div>
-          </header>
+            <div className="flex shrink-0 items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setShowMobileFilters((v) => !v)}
+                className="flex items-center gap-1 rounded-full border border-line bg-surface-muted px-2.5 py-1 text-[11px] font-semibold text-ink-soft"
+                aria-expanded={showMobileFilters}
+              >
+                <Funnel size={12} weight="bold" />
+                Filters
+              </button>
+              <Link
+                href="/planner"
+                className="flex items-center gap-0.5 rounded-full bg-brand px-2.5 py-1 text-[11px] font-bold text-white"
+              >
+                Plan
+                <ArrowRight size={11} weight="bold" />
+              </Link>
+            </div>
+          </div>
+          <div className="mt-2">
+            <SiteNav />
+          </div>
+        </div>
 
-          {/* Event list */}
-          <div ref={railRef} className="event-rail flex-1 overflow-y-auto px-3 py-3">
-            <p className="px-2 pb-2 text-xs font-medium text-ink-soft">
+        {/* Desktop header + collapsible mobile filters */}
+        <header
+          className={`shrink-0 border-b border-line lg:px-5 lg:pb-4 lg:pt-5 ${
+            showMobileFilters ? "block px-3 pb-3 pt-2" : "hidden lg:block"
+          }`}
+        >
+          <div className="mb-4 hidden lg:block">
+            <SiteNav />
+          </div>
+          <div className="hidden items-center gap-2.5 lg:flex">
+            <span
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-white"
+              aria-hidden
+            >
+              <Tree size={20} weight="fill" />
+            </span>
+            <div>
+              <h1 className="font-display text-xl font-bold leading-none tracking-tight text-ink">
+                Maywood Summer &rsquo;26
+              </h1>
+              <p className="mt-1 text-xs text-ink-soft">
+                Every event in the village, on one map.
+              </p>
+            </div>
+          </div>
+
+          {showWelcome && (
+            <div className="mt-3 rounded-xl border border-brand/25 bg-brand-soft px-3 py-2 text-sm text-ink lg:mt-4 lg:rounded-2xl lg:px-4 lg:py-3">
+              <p className="font-display text-xs font-semibold lg:text-sm">
+                You&rsquo;re in. Tap an event below to start.
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowWelcome(false)}
+                className="mt-1 text-[11px] font-semibold text-brand-dark underline underline-offset-2"
+              >
+                Got it
+              </button>
+            </div>
+          )}
+
+          <Link
+            href="/planner"
+            className="group mt-3 hidden w-full items-center justify-between rounded-2xl bg-brand px-4 py-3 text-white transition hover:bg-brand-dark active:scale-[0.98] lg:flex"
+          >
+            <span className="font-display text-sm font-bold">Plan your day</span>
+            <span className="flex items-center gap-1.5 text-xs font-medium opacity-90">
+              All events, travel times
+              <ArrowRight
+                size={14}
+                weight="bold"
+                className="transition-transform group-hover:translate-x-0.5"
+              />
+            </span>
+          </Link>
+
+          {/* Date filter */}
+          <div className="mt-3 lg:mt-5">
+            <p className="mb-1.5 hidden text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft lg:block">
+              Day
+            </p>
+            <div className="flex gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <FilterChip
+                active={selectedDate === "all"}
+                onClick={() => setSelectedDate("all")}
+              >
+                All
+              </FilterChip>
+              {DATE_CHIPS.map((chip) => (
+                <FilterChip
+                  key={chip.date}
+                  active={selectedDate === chip.date}
+                  onClick={() => setSelectedDate(chip.date)}
+                  className="shrink-0"
+                >
+                  {chip.label}
+                </FilterChip>
+              ))}
+            </div>
+          </div>
+
+          {/* Category filter */}
+          <div className="mt-3 lg:mt-4">
+            <div className="mb-1.5 flex items-center justify-between">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft">
+                Categories
+              </p>
+              {!allCategoriesOn && (
+                <button
+                  onClick={() => setActiveCategories(new Set(ALL_CATEGORY_IDS))}
+                  className="text-[11px] font-semibold text-brand hover:underline"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {CATEGORIES.map((category) => {
+                const on = activeCategories.has(category.id);
+                return (
+                  <button
+                    key={category.id}
+                    onClick={() => toggleCategory(category.id)}
+                    className="flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium transition active:scale-[0.97] lg:gap-1.5 lg:px-2.5 lg:py-1 lg:text-xs"
+                    style={{
+                      borderColor: on ? category.color : "var(--line)",
+                      background: on ? `${category.color}12` : "transparent",
+                      color: on ? "var(--ink)" : "var(--ink-soft)",
+                      opacity: on ? 1 : 0.55,
+                    }}
+                  >
+                    <CategoryGlyph
+                      id={category.id}
+                      size={12}
+                      weight="fill"
+                      color={on ? category.color : "currentColor"}
+                    />
+                    <span className="hidden sm:inline">{category.label}</span>
+                    <span className="sm:hidden">{category.label.split(" ")[0]}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </header>
+
+        {/* Event list — this is the main mobile surface */}
+        <div className="relative min-h-0 flex-1">
+          <div className="flex items-center justify-between border-b border-line/60 px-3 py-1.5 lg:hidden">
+            <p className="font-mono text-[10px] font-medium uppercase tracking-wider text-ink-soft">
+              Scroll events
+            </p>
+            <CaretDown size={12} className="animate-bounce text-brand" aria-hidden />
+          </div>
+          <div
+            ref={railRef}
+            className="event-rail h-full min-h-0 overflow-y-auto overscroll-contain px-3 py-2 lg:px-3 lg:py-3"
+          >
+            <p className="hidden px-2 pb-2 font-mono text-[11px] font-medium text-ink-soft lg:block">
               {filteredEvents.length} event{filteredEvents.length === 1 ? "" : "s"}
             </p>
-            <ul className="flex flex-col gap-2">
+            <ul className="flex flex-col gap-1.5 lg:gap-2">
               {filteredEvents.map((event) => {
                 const category = CATEGORY_MAP[event.category];
                 const key = `${event.lat.toFixed(5)},${event.lng.toFixed(5)}`;
@@ -364,31 +518,33 @@ export default function MaywoodMap({ apiKey, mapId }: MaywoodMapProps) {
                   <li key={event.id}>
                     <button
                       onClick={() => selectEvent(event)}
-                      className="w-full rounded-2xl border bg-surface p-3 text-left transition hover:border-brand/60 hover:shadow-sm"
+                      className="w-full rounded-xl border bg-surface p-2.5 text-left transition hover:border-brand/50 hover:shadow-sm active:scale-[0.99] lg:rounded-2xl lg:p-3"
                       style={{
                         borderColor: active ? category.color : "var(--line)",
-                        boxShadow: active
-                          ? `0 0 0 1px ${category.color}`
-                          : undefined,
+                        boxShadow: active ? `0 0 0 1px ${category.color}` : undefined,
                       }}
                     >
-                      <div className="flex items-start gap-3">
+                      <div className="flex items-start gap-2.5 lg:gap-3">
                         <span
-                          className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-base"
-                          style={{ background: `${category.color}1a` }}
+                          className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg lg:h-9 lg:w-9 lg:rounded-xl"
+                          style={{
+                            background: `${category.color}16`,
+                            color: category.color,
+                          }}
                           aria-hidden
                         >
-                          {category.emoji}
+                          <CategoryGlyph id={event.category} size={15} weight="fill" />
                         </span>
                         <div className="min-w-0">
-                          <p className="font-display text-sm font-semibold leading-tight text-ink">
+                          <p className="font-display text-[13px] font-semibold leading-tight text-ink lg:text-sm">
                             {event.title}
                           </p>
-                          <p className="mt-1 text-xs font-medium text-brand-dark">
+                          <p className="mt-0.5 font-mono text-[10px] font-medium text-brand-dark lg:text-[11px]">
                             {event.dateLabel} · {event.timeLabel}
                           </p>
-                          <p className="mt-0.5 truncate text-xs text-ink-soft">
-                            📍 {event.venue}
+                          <p className="mt-0.5 flex items-center gap-1 truncate text-[11px] text-ink-soft lg:text-xs">
+                            <MapPin size={11} weight="fill" className="shrink-0" />
+                            {event.venue}
                           </p>
                         </div>
                       </div>
@@ -397,104 +553,18 @@ export default function MaywoodMap({ apiKey, mapId }: MaywoodMapProps) {
                 );
               })}
               {filteredEvents.length === 0 && (
-                <li className="rounded-2xl border border-dashed border-line px-4 py-8 text-center text-sm text-ink-soft">
-                  No events match these filters. Try turning categories back on.
+                <li className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-line px-4 py-8 text-center">
+                  <MapPin size={22} className="text-ink-soft/60" />
+                  <p className="text-sm text-ink-soft">
+                    No events match these filters.
+                  </p>
                 </li>
               )}
             </ul>
           </div>
-
-        </aside>
-
-        {/* Map */}
-        <div className="order-1 h-[45vh] w-full lg:order-2 lg:h-full lg:flex-1">
-          <GoogleMap
-            {...(useAdvanced ? { mapId } : {})}
-            defaultCenter={MAYWOOD_CENTER}
-            defaultZoom={13}
-            gestureHandling="greedy"
-            disableDefaultUI={false}
-            mapTypeControl={false}
-            streetViewControl={false}
-            fullscreenControl={false}
-            className="h-full w-full"
-          >
-            <MapController venues={venues} fitKey={fitKey} focus={focus} />
-            {venues.map((venue) => (
-              <VenueMarker
-                key={venue.key}
-                venue={venue}
-                active={venue.key === selectedVenueKey}
-                onSelect={selectVenue}
-                useAdvanced={useAdvanced}
-              />
-            ))}
-            {selectedVenue && (
-              <InfoWindow
-                position={{ lat: selectedVenue.lat, lng: selectedVenue.lng }}
-                pixelOffset={[0, -46]}
-                onCloseClick={() => setSelectedVenueKey(null)}
-                headerDisabled
-              >
-                <div className="max-w-[280px] p-4 font-body">
-                  <p className="font-display text-sm font-bold text-ink">
-                    {selectedVenue.venue}
-                  </p>
-                  <p className="mt-0.5 text-xs text-ink-soft">{selectedVenue.address}</p>
-                  <div className="mt-3 flex flex-col gap-3">
-                    {selectedVenue.events.map((event) => {
-                      const category = CATEGORY_MAP[event.category];
-                      return (
-                        <div
-                          key={event.id}
-                          className="border-t border-line pt-3 first:border-t-0 first:pt-0"
-                        >
-                          <div className="flex items-start gap-2">
-                            <span aria-hidden>{category.emoji}</span>
-                            <div>
-                              <p className="font-display text-sm font-semibold leading-tight text-ink">
-                                {event.title}
-                              </p>
-                              <p className="mt-0.5 text-xs font-medium text-brand-dark">
-                                {event.dateLabel} · {event.timeLabel}
-                              </p>
-                              <p className="mt-1 text-xs leading-snug text-ink-soft">
-                                {event.description}
-                              </p>
-                              <div className="mt-2 flex flex-wrap gap-2">
-                                {event.links.map((link) => (
-                                  <a
-                                    key={link.url}
-                                    href={link.url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="rounded-full bg-brand-soft px-2.5 py-1 text-[11px] font-semibold text-brand-dark hover:bg-brand hover:text-white"
-                                  >
-                                    {link.label}
-                                  </a>
-                                ))}
-                                <a
-                                  href={directionsUrl(event)}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="rounded-full bg-ink px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-brand-dark"
-                                >
-                                  Directions
-                                </a>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </InfoWindow>
-            )}
-          </GoogleMap>
         </div>
-      </div>
-    </APIProvider>
+      </aside>
+    </div>
   );
 }
 
@@ -502,15 +572,17 @@ function FilterChip({
   active,
   onClick,
   children,
+  className = "",
 }: {
   active: boolean;
   onClick: () => void;
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
     <button
       onClick={onClick}
-      className="rounded-full px-3 py-1 text-xs font-semibold transition"
+      className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold transition active:scale-[0.97] lg:px-3 lg:py-1 lg:text-xs ${className}`}
       style={{
         background: active ? "var(--brand)" : "var(--surface-muted)",
         color: active ? "#fff" : "var(--ink-soft)",
