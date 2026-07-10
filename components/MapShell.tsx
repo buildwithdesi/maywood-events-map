@@ -33,7 +33,7 @@ export default function MapShell() {
       <div className="min-h-0 flex-1 overflow-hidden">
         <MaywoodMap />
       </div>
-      <DaFooter className="hidden md:block" />
+      <DaFooter />
     </div>
   );
 }

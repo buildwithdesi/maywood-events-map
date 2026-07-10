@@ -23,7 +23,7 @@ export default function SiteNav() {
           <Link
             key={link.href}
             href={link.href}
-            className="shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition"
+            className="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold transition"
             style={{
               background: active ? "var(--brand)" : "var(--surface-muted)",
               color: active ? "#fff" : "var(--ink-soft)",

@@ -108,7 +108,7 @@ export default function MaywoodMap() {
   );
   const [selectedVenueKey, setSelectedVenueKey] = useState<string | null>(null);
   const [showWelcome, setShowWelcome] = useState(false);
-  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const [mapReady, setMapReady] = useState(false);
   const mapRef = useRef<MapRef>(null);
   const railRef = useRef<HTMLDivElement>(null);
@@ -323,10 +323,10 @@ export default function MaywoodMap() {
         </MapLibre>
       </div>
 
-      {/* Rail */}
-      <aside className="order-2 flex min-h-0 w-full flex-1 flex-col border-line bg-surface lg:order-1 lg:h-full lg:w-[400px] lg:flex-none lg:border-r">
-        {/* Compact mobile toolbar */}
-        <div className="shrink-0 border-b border-line px-3 py-2 lg:hidden">
+      {/* Rail — events own the column; chrome stays thin */}
+      <aside className="order-2 flex min-h-0 w-full flex-1 flex-col bg-surface lg:order-1 lg:h-full lg:w-[360px] lg:flex-none lg:border-r lg:border-line">
+        {/* Slim sticky chrome */}
+        <div className="shrink-0 border-b border-line px-3 py-2.5 lg:px-4">
           <div className="flex items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-2">
               <span
@@ -336,199 +336,170 @@ export default function MaywoodMap() {
                 <Tree size={14} weight="fill" />
               </span>
               <div className="min-w-0">
-                <p className="truncate font-display text-sm font-bold leading-none text-ink">
-                  Maywood &rsquo;26
-                </p>
+                <h1 className="truncate font-display text-sm font-bold leading-none tracking-tight text-ink lg:text-[15px]">
+                  Maywood Summer &rsquo;26
+                </h1>
                 <p className="mt-0.5 font-mono text-[10px] text-ink-soft">
-                  {filteredEvents.length} events
+                  {filteredEvents.length} events on map
                 </p>
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
               <button
                 type="button"
-                onClick={() => setShowMobileFilters((v) => !v)}
-                className="flex items-center gap-1 rounded-full border border-line bg-surface-muted px-2.5 py-1 text-[11px] font-semibold text-ink-soft"
-                aria-expanded={showMobileFilters}
+                onClick={() => setShowFilters((v) => !v)}
+                className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition active:scale-[0.97] ${
+                  showFilters
+                    ? "border-brand bg-brand-soft text-brand-dark"
+                    : "border-line bg-surface-muted text-ink-soft hover:border-brand/40"
+                }`}
+                aria-expanded={showFilters}
               >
                 <Funnel size={12} weight="bold" />
                 Filters
               </button>
               <Link
                 href="/planner"
-                className="flex items-center gap-0.5 rounded-full bg-brand px-2.5 py-1 text-[11px] font-bold text-white"
+                className="group flex items-center gap-0.5 rounded-full bg-brand px-2.5 py-1 text-[11px] font-bold text-white transition hover:bg-brand-dark active:scale-[0.97]"
               >
                 Plan
-                <ArrowRight size={11} weight="bold" />
+                <ArrowRight
+                  size={11}
+                  weight="bold"
+                  className="transition-transform group-hover:translate-x-0.5"
+                />
               </Link>
             </div>
           </div>
+
           <div className="mt-2">
             <SiteNav />
           </div>
-        </div>
-
-        {/* Desktop header + collapsible mobile filters */}
-        <header
-          className={`shrink-0 border-b border-line lg:px-5 lg:pb-4 lg:pt-5 ${
-            showMobileFilters ? "block px-3 pb-3 pt-2" : "hidden lg:block"
-          }`}
-        >
-          <div className="mb-4 hidden lg:block">
-            <SiteNav />
-          </div>
-          <div className="hidden items-center gap-2.5 lg:flex">
-            <span
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-white"
-              aria-hidden
-            >
-              <Tree size={20} weight="fill" />
-            </span>
-            <div>
-              <h1 className="font-display text-xl font-bold leading-none tracking-tight text-ink">
-                Maywood Summer &rsquo;26
-              </h1>
-              <p className="mt-1 text-xs text-ink-soft">
-                Every event in the village, on one map.
-              </p>
-            </div>
-          </div>
 
           {showWelcome && (
-            <div className="mt-3 rounded-xl border border-brand/25 bg-brand-soft px-3 py-2 text-sm text-ink lg:mt-4 lg:rounded-2xl lg:px-4 lg:py-3">
-              <p className="font-display text-xs font-semibold lg:text-sm">
-                You&rsquo;re in. Tap an event below to start.
+            <div className="mt-2 flex items-center justify-between gap-2 rounded-lg border border-brand/20 bg-brand-soft px-2.5 py-1.5">
+              <p className="text-[11px] font-medium text-ink">
+                Tap an event to explore the map.
               </p>
               <button
                 type="button"
                 onClick={() => setShowWelcome(false)}
-                className="mt-1 text-[11px] font-semibold text-brand-dark underline underline-offset-2"
+                className="shrink-0 text-[11px] font-semibold text-brand-dark underline underline-offset-2"
               >
                 Got it
               </button>
             </div>
           )}
 
-          <Link
-            href="/planner"
-            className="group mt-3 hidden w-full items-center justify-between rounded-2xl bg-brand px-4 py-3 text-white transition hover:bg-brand-dark active:scale-[0.98] lg:flex"
-          >
-            <span className="font-display text-sm font-bold">Plan your day</span>
-            <span className="flex items-center gap-1.5 text-xs font-medium opacity-90">
-              All events, travel times
-              <ArrowRight
-                size={14}
-                weight="bold"
-                className="transition-transform group-hover:translate-x-0.5"
-              />
-            </span>
-          </Link>
-
-          {/* Date filter */}
-          <div className="mt-3 lg:mt-5">
-            <p className="mb-1.5 hidden text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft lg:block">
-              Day
-            </p>
-            <div className="flex gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {/* Day chips always visible — one tight row */}
+          <div className="mt-2 flex gap-1 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <FilterChip
+              active={selectedDate === "all"}
+              onClick={() => setSelectedDate("all")}
+            >
+              All
+            </FilterChip>
+            {DATE_CHIPS.map((chip) => (
               <FilterChip
-                active={selectedDate === "all"}
-                onClick={() => setSelectedDate("all")}
+                key={chip.date}
+                active={selectedDate === chip.date}
+                onClick={() => setSelectedDate(chip.date)}
+                className="shrink-0"
               >
-                All
+                {chip.label}
               </FilterChip>
-              {DATE_CHIPS.map((chip) => (
-                <FilterChip
-                  key={chip.date}
-                  active={selectedDate === chip.date}
-                  onClick={() => setSelectedDate(chip.date)}
-                  className="shrink-0"
-                >
-                  {chip.label}
-                </FilterChip>
-              ))}
-            </div>
+            ))}
           </div>
+        </div>
 
-          {/* Category filter */}
-          <div className="mt-3 lg:mt-4">
+        {/* Categories — collapsed by default everywhere */}
+        {showFilters && (
+          <div className="shrink-0 border-b border-line px-3 py-2 lg:px-4">
             <div className="mb-1.5 flex items-center justify-between">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-soft">
                 Categories
               </p>
               {!allCategoriesOn && (
                 <button
                   onClick={() => setActiveCategories(new Set(ALL_CATEGORY_IDS))}
-                  className="text-[11px] font-semibold text-brand hover:underline"
+                  className="text-[10px] font-semibold text-brand hover:underline"
                 >
-                  Reset
+                  Reset all
                 </button>
               )}
             </div>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {CATEGORIES.map((category) => {
                 const on = activeCategories.has(category.id);
                 return (
                   <button
                     key={category.id}
                     onClick={() => toggleCategory(category.id)}
-                    className="flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium transition active:scale-[0.97] lg:gap-1.5 lg:px-2.5 lg:py-1 lg:text-xs"
+                    title={category.label}
+                    className="flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium transition active:scale-[0.97]"
                     style={{
                       borderColor: on ? category.color : "var(--line)",
-                      background: on ? `${category.color}12` : "transparent",
+                      background: on ? `${category.color}14` : "var(--surface-muted)",
                       color: on ? "var(--ink)" : "var(--ink-soft)",
-                      opacity: on ? 1 : 0.55,
+                      opacity: on ? 1 : 0.65,
                     }}
                   >
                     <CategoryGlyph
                       id={category.id}
-                      size={12}
+                      size={11}
                       weight="fill"
                       color={on ? category.color : "currentColor"}
                     />
-                    <span className="hidden sm:inline">{category.label}</span>
-                    <span className="sm:hidden">{category.label.split(" ")[0]}</span>
+                    {category.label.split(" ")[0]}
                   </button>
                 );
               })}
             </div>
           </div>
-        </header>
+        )}
 
-        {/* Event list — this is the main mobile surface */}
-        <div className="relative min-h-0 flex-1">
-          <div className="flex items-center justify-between border-b border-line/60 px-3 py-1.5 lg:hidden">
+        {/* Event list — primary surface */}
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="flex shrink-0 items-center justify-between border-b border-line/70 px-3 py-1.5 lg:px-4">
             <p className="font-mono text-[10px] font-medium uppercase tracking-wider text-ink-soft">
-              Scroll events
+              {filteredEvents.length} event{filteredEvents.length === 1 ? "" : "s"}
             </p>
-            <CaretDown size={12} className="animate-bounce text-brand" aria-hidden />
+            <CaretDown
+              size={12}
+              className="text-brand/70 lg:hidden"
+              aria-hidden
+            />
           </div>
           <div
             ref={railRef}
-            className="event-rail h-full min-h-0 overflow-y-auto overscroll-contain px-3 py-2 lg:px-3 lg:py-3"
+            className="event-rail min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-2 lg:px-4 lg:py-3"
           >
-            <p className="hidden px-2 pb-2 font-mono text-[11px] font-medium text-ink-soft lg:block">
-              {filteredEvents.length} event{filteredEvents.length === 1 ? "" : "s"}
-            </p>
-            <ul className="flex flex-col gap-1.5 lg:gap-2">
-              {filteredEvents.map((event) => {
+            <ul className="flex flex-col gap-1.5">
+              {filteredEvents.map((event, index) => {
                 const category = CATEGORY_MAP[event.category];
                 const key = `${event.lat.toFixed(5)},${event.lng.toFixed(5)}`;
                 const active = key === selectedVenueKey;
                 return (
-                  <li key={event.id}>
+                  <li
+                    key={event.id}
+                    style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
+                    className="animate-[marker-pop_0.35s_cubic-bezier(0.16,1,0.3,1)_both]"
+                  >
                     <button
                       onClick={() => selectEvent(event)}
-                      className="w-full rounded-xl border bg-surface p-2.5 text-left transition hover:border-brand/50 hover:shadow-sm active:scale-[0.99] lg:rounded-2xl lg:p-3"
+                      className="w-full rounded-xl border bg-surface p-2.5 text-left transition hover:border-brand/40 hover:shadow-[0_8px_24px_-16px_rgba(15,40,28,0.35)] active:scale-[0.99]"
                       style={{
                         borderColor: active ? category.color : "var(--line)",
-                        boxShadow: active ? `0 0 0 1px ${category.color}` : undefined,
+                        boxShadow: active
+                          ? `0 0 0 1px ${category.color}, 0 8px 24px -16px ${category.color}33`
+                          : undefined,
                       }}
                     >
-                      <div className="flex items-start gap-2.5 lg:gap-3">
+                      <div className="flex items-start gap-2.5">
                         <span
-                          className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg lg:h-9 lg:w-9 lg:rounded-xl"
+                          className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
                           style={{
-                            background: `${category.color}16`,
+                            background: `${category.color}14`,
                             color: category.color,
                           }}
                           aria-hidden
@@ -536,13 +507,13 @@ export default function MaywoodMap() {
                           <CategoryGlyph id={event.category} size={15} weight="fill" />
                         </span>
                         <div className="min-w-0">
-                          <p className="font-display text-[13px] font-semibold leading-tight text-ink lg:text-sm">
+                          <p className="font-display text-[13px] font-semibold leading-snug text-ink">
                             {event.title}
                           </p>
-                          <p className="mt-0.5 font-mono text-[10px] font-medium text-brand-dark lg:text-[11px]">
+                          <p className="mt-0.5 font-mono text-[10px] font-medium text-brand-dark">
                             {event.dateLabel} · {event.timeLabel}
                           </p>
-                          <p className="mt-0.5 flex items-center gap-1 truncate text-[11px] text-ink-soft lg:text-xs">
+                          <p className="mt-0.5 flex items-center gap-1 truncate text-[11px] text-ink-soft">
                             <MapPin size={11} weight="fill" className="shrink-0" />
                             {event.venue}
                           </p>
@@ -553,11 +524,9 @@ export default function MaywoodMap() {
                 );
               })}
               {filteredEvents.length === 0 && (
-                <li className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-line px-4 py-8 text-center">
-                  <MapPin size={22} className="text-ink-soft/60" />
-                  <p className="text-sm text-ink-soft">
-                    No events match these filters.
-                  </p>
+                <li className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-line px-4 py-10 text-center">
+                  <MapPin size={20} className="text-ink-soft/50" />
+                  <p className="text-sm text-ink-soft">No events match these filters.</p>
                 </li>
               )}
             </ul>
