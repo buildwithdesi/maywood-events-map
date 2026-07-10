@@ -20,9 +20,24 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   async headers() {
     return [
-      // Don't blanket-apply to /_next/static — stale 404s + nosniff = CSS MIME errors
       {
-        source: "/((?!_next/static).*)",
+        source: "/",
+        headers: securityHeaders,
+      },
+      {
+        source: "/planner",
+        headers: securityHeaders,
+      },
+      {
+        source: "/submit",
+        headers: securityHeaders,
+      },
+      {
+        source: "/admin",
+        headers: securityHeaders,
+      },
+      {
+        source: "/api/:path*",
         headers: securityHeaders,
       },
     ];
