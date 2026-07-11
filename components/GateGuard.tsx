@@ -37,7 +37,7 @@ export default function GateGuard({ children, intent = "map" }: GateGuardProps) 
 
   if (!ready) {
     return (
-      <div className="flex min-h-[100dvh] items-center justify-center bg-[#0A0B0D] text-[#F5F5F7]/70">
+      <div className="flex min-h-[100dvh] items-center justify-center bg-background text-ink-soft">
         Loading…
       </div>
     );

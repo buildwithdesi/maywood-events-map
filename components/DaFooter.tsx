@@ -13,7 +13,7 @@ export default function DaFooter({ className = "" }: { className?: string }) {
           <span className="mx-1.5 text-line">·</span>
           Built for Maywood by{" "}
           <a
-            href="https://digitalalchemy.dev"
+            href="https://www.linkedin.com/in/desmond-baker-jr-896892103/"
             target="_blank"
             rel="noreferrer"
             className="font-semibold text-brand transition hover:text-brand-dark"

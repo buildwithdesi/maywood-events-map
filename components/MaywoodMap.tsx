@@ -26,11 +26,15 @@ import {
   type Venue,
 } from "@/lib/events";
 import { CategoryGlyph } from "@/components/CategoryIcon";
+import { useTheme } from "@/components/ThemeProvider";
 import SiteNav from "@/components/SiteNav";
 import { consumeJustUnlocked } from "@/lib/gate";
 
-// Keyless vector tiles. No API key, no billing, no referrer rules.
-const MAP_STYLE = "https://tiles.openfreemap.org/styles/positron";
+// Keyless vector tiles. Style swaps with theme (see globals.css --map-style).
+const MAP_STYLES = {
+  light: "https://tiles.openfreemap.org/styles/positron",
+  dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+} as const;
 
 interface DateChip {
   date: string;
@@ -102,6 +106,7 @@ function VenuePin({
 }
 
 export default function MaywoodMap() {
+  const { resolved: theme } = useTheme();
   const [selectedDate, setSelectedDate] = useState<string>("all");
   const [activeCategories, setActiveCategories] = useState<Set<CategoryId>>(
     new Set(ALL_CATEGORY_IDS)
@@ -210,13 +215,14 @@ export default function MaywoodMap() {
       {/* Map — compact strip on mobile so the event list gets the screen */}
       <div className="order-1 h-[28vh] max-h-[220px] w-full shrink-0 lg:order-2 lg:h-full lg:max-h-none lg:min-h-0 lg:flex-1">
         <MapLibre
+          key={theme}
           ref={mapRef}
           initialViewState={{
             longitude: MAYWOOD_CENTER.lng,
             latitude: MAYWOOD_CENTER.lat,
             zoom: 13,
           }}
-          mapStyle={MAP_STYLE}
+          mapStyle={MAP_STYLES[theme]}
           onLoad={() => setMapReady(true)}
           onClick={() => setSelectedVenueKey(null)}
           style={{ width: "100%", height: "100%" }}
@@ -325,46 +331,46 @@ export default function MaywoodMap() {
 
       {/* Rail — events own the column; chrome stays thin */}
       <aside className="order-2 flex min-h-0 w-full flex-1 flex-col bg-surface lg:order-1 lg:h-full lg:w-[360px] lg:flex-none lg:border-r lg:border-line">
-        {/* Slim sticky chrome */}
-        <div className="shrink-0 border-b border-line px-3 py-2.5 lg:px-4">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex min-w-0 items-center gap-2">
+        {/* Banner + controls — title gets full width, nothing truncates */}
+        <div className="shrink-0 border-b border-line px-3 py-3 lg:px-4">
+          <div className="rounded-2xl border border-brand/15 bg-gradient-to-br from-brand-soft to-surface px-3.5 py-3 shadow-[0_12px_32px_-24px_var(--shadow-ink)]">
+            <div className="flex items-start gap-3">
               <span
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand text-white"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand text-white shadow-[0_8px_20px_-12px_rgba(15,122,77,0.65)]"
                 aria-hidden
               >
-                <Tree size={14} weight="fill" />
+                <Tree size={18} weight="fill" />
               </span>
-              <div className="min-w-0">
-                <h1 className="truncate font-display text-sm font-bold leading-none tracking-tight text-ink lg:text-[15px]">
-                  Maywood Summer &rsquo;26
+              <div className="min-w-0 flex-1">
+                <h1 className="font-display text-[17px] font-bold leading-tight tracking-tight text-ink sm:text-lg">
+                  Maywood Summer 2026
                 </h1>
-                <p className="mt-0.5 font-mono text-[10px] text-ink-soft">
-                  {filteredEvents.length} events on map
+                <p className="mt-1 text-xs leading-snug text-ink-soft">
+                  {filteredEvents.length} events across the village
                 </p>
               </div>
             </div>
-            <div className="flex shrink-0 items-center gap-1.5">
+            <div className="mt-3 flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setShowFilters((v) => !v)}
-                className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition active:scale-[0.97] ${
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition active:scale-[0.98] ${
                   showFilters
-                    ? "border-brand bg-brand-soft text-brand-dark"
-                    : "border-line bg-surface-muted text-ink-soft hover:border-brand/40"
+                    ? "border-brand bg-surface text-brand-dark"
+                    : "border-line/80 bg-surface/80 text-ink-soft hover:border-brand/30"
                 }`}
                 aria-expanded={showFilters}
               >
-                <Funnel size={12} weight="bold" />
+                <Funnel size={13} weight="bold" />
                 Filters
               </button>
               <Link
                 href="/planner"
-                className="group flex items-center gap-0.5 rounded-full bg-brand px-2.5 py-1 text-[11px] font-bold text-white transition hover:bg-brand-dark active:scale-[0.97]"
+                className="group flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-brand px-3 py-2 text-xs font-bold text-white transition hover:bg-brand-dark active:scale-[0.98]"
               >
-                Plan
+                Plan your day
                 <ArrowRight
-                  size={11}
+                  size={13}
                   weight="bold"
                   className="transition-transform group-hover:translate-x-0.5"
                 />
@@ -372,27 +378,26 @@ export default function MaywoodMap() {
             </div>
           </div>
 
-          <div className="mt-2">
+          <div className="mt-3">
             <SiteNav />
           </div>
 
           {showWelcome && (
-            <div className="mt-2 flex items-center justify-between gap-2 rounded-lg border border-brand/20 bg-brand-soft px-2.5 py-1.5">
-              <p className="text-[11px] font-medium text-ink">
+            <div className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-brand/20 bg-brand-soft px-3 py-2">
+              <p className="text-xs font-medium text-ink">
                 Tap an event to explore the map.
               </p>
               <button
                 type="button"
                 onClick={() => setShowWelcome(false)}
-                className="shrink-0 text-[11px] font-semibold text-brand-dark underline underline-offset-2"
+                className="shrink-0 text-xs font-semibold text-brand-dark underline underline-offset-2"
               >
                 Got it
               </button>
             </div>
           )}
 
-          {/* Day chips always visible — one tight row */}
-          <div className="mt-2 flex gap-1 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="mt-3 flex gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <FilterChip
               active={selectedDate === "all"}
               onClick={() => setSelectedDate("all")}
@@ -460,8 +465,8 @@ export default function MaywoodMap() {
 
         {/* Event list — primary surface */}
         <div className="flex min-h-0 flex-1 flex-col">
-          <div className="flex shrink-0 items-center justify-between border-b border-line/70 px-3 py-1.5 lg:px-4">
-            <p className="font-mono text-[10px] font-medium uppercase tracking-wider text-ink-soft">
+          <div className="flex shrink-0 items-center justify-between border-b border-line/70 px-3 py-2 lg:px-4">
+            <p className="text-xs font-medium text-ink-soft">
               {filteredEvents.length} event{filteredEvents.length === 1 ? "" : "s"}
             </p>
             <CaretDown

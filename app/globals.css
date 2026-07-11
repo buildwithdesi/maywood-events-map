@@ -10,6 +10,28 @@
   --brand: #0f7a4d;
   --brand-dark: #0a5636;
   --brand-soft: #e6f2ec;
+  --banner-from: #e6f2ec;
+  --banner-to: #ffffff;
+  --shadow-ink: rgba(15, 40, 28, 0.45);
+  --map-style: https://tiles.openfreemap.org/styles/positron;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --background: #0e1210;
+  --surface: #161d19;
+  --surface-muted: #1c2420;
+  --ink: #eef2ef;
+  --ink-soft: #9aa8a0;
+  --line: #2a3530;
+  --brand: #3ecf7a;
+  --brand-dark: #2aa861;
+  --brand-soft: #1a2e24;
+  --banner-from: #1a2e24;
+  --banner-to: #161d19;
+  --shadow-ink: rgba(0, 0, 0, 0.55);
+  --map-style: https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json;
+  color-scheme: dark;
 }
 
 @theme inline {
