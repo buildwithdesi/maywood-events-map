@@ -6,6 +6,8 @@
   --surface-muted: #f7f5ef;
   --ink: #14261d;
   --ink-soft: #4b5a52;
+  --fill-strong: #14261d;
+  --on-fill-strong: #ffffff;
   --line: #e2ddd0;
   --brand: #0f7a4d;
   --brand-dark: #0a5636;
@@ -23,6 +25,8 @@
   --surface-muted: #1c2420;
   --ink: #eef2ef;
   --ink-soft: #9aa8a0;
+  --fill-strong: #0a1210;
+  --on-fill-strong: #ffffff;
   --line: #2a3530;
   --brand: #3ecf7a;
   --brand-dark: #2aa861;
@@ -40,6 +44,8 @@
   --color-surface-muted: var(--surface-muted);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
+  --color-fill-strong: var(--fill-strong);
+  --color-on-fill-strong: var(--on-fill-strong);
   --color-line: var(--line);
   --color-brand: var(--brand);
   --color-brand-dark: var(--brand-dark);
@@ -68,16 +74,21 @@ body {
   font-family: var(--font-mono);
 }
 
-/* MapLibre popup cleanup so our custom card owns the look */
+/* MapLibre popup: theme surface + ink (default maplibre bg is always white) */
 .maplibregl-popup-content {
   padding: 0;
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 18px 40px -18px rgba(15, 40, 28, 0.5);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 18px 40px -18px var(--shadow-ink);
   font-family: var(--font-body);
 }
 .maplibregl-popup-tip {
   border-top-color: var(--surface);
+}
+[data-theme="dark"] .maplibregl-popup-content {
+  border: 1px solid var(--line);
 }
 .maplibregl-canvas:focus {
   outline: none;

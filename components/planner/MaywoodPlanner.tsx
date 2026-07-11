@@ -532,7 +532,7 @@ export default function MaywoodPlanner() {
                 />
                 <button
                   onClick={runCompare}
-                  className="rounded-xl bg-ink px-3 py-2 text-xs font-bold text-white"
+                  className="rounded-xl bg-fill-strong px-3 py-2 text-xs font-bold text-on-fill-strong transition hover:bg-brand-dark hover:text-white"
                 >
                   Compare
                 </button>

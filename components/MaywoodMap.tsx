@@ -97,7 +97,7 @@ function VenuePin({
         style={{ background: category.color }}
       />
       {multi && (
-        <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-ink px-1 font-mono text-[10px] font-bold leading-none text-white">
+        <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-fill-strong px-1 font-mono text-[10px] font-bold leading-none text-on-fill-strong">
           {venue.events.length}
         </span>
       )}
@@ -255,7 +255,7 @@ export default function MaywoodMap() {
               maxWidth="300px"
               onClose={() => setSelectedVenueKey(null)}
             >
-              <div className="relative max-w-[280px] p-4 font-body">
+              <div className="relative max-w-[280px] bg-surface p-4 font-body text-ink">
                 <button
                   type="button"
                   onClick={() => setSelectedVenueKey(null)}
@@ -311,7 +311,7 @@ export default function MaywoodMap() {
                                 href={directionsUrl(event)}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="flex items-center gap-1 rounded-full bg-ink px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-brand-dark"
+                                className="flex items-center gap-1 rounded-full bg-fill-strong px-2.5 py-1 text-[11px] font-semibold text-on-fill-strong transition hover:bg-brand-dark hover:text-white"
                               >
                                 <NavigationArrow size={10} weight="fill" />
                                 Directions
