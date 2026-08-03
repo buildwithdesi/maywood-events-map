@@ -38,12 +38,17 @@ ADMIN_EXPORT_SECRET=pick_a_long_random_string
 
 Export your list anytime:
 
+The secret goes in a header. It is not accepted from the query string, because
+URLs are recorded in server access logs, proxies, and shell history.
+
 ```
 # JSON
-curl "https://YOUR_DOMAIN/api/emails?secret=YOUR_ADMIN_EXPORT_SECRET"
+curl -H "x-admin-secret: YOUR_ADMIN_EXPORT_SECRET" \
+  "https://YOUR_DOMAIN/api/emails"
 
 # CSV download
-curl -OJ "https://YOUR_DOMAIN/api/emails?secret=YOUR_ADMIN_EXPORT_SECRET&format=csv"
+curl -OJ -H "x-admin-secret: YOUR_ADMIN_EXPORT_SECRET" \
+  "https://YOUR_DOMAIN/api/emails?format=csv"
 ```
 
 Returning visitors stay unlocked via `localStorage` (they are not re-prompted).

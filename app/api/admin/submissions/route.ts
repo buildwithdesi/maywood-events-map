@@ -1,21 +1,14 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { isAdmin } from "@/lib/admin-auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { getServiceSupabase } from "@/lib/supabase.server";
 
 export const runtime = "nodejs";
 
-function adminOk(req: Request): boolean {
-  const url = new URL(req.url);
-  const secret =
-    req.headers.get("x-admin-secret") || url.searchParams.get("secret") || "";
-  const expected = process.env.ADMIN_EXPORT_SECRET;
-  return Boolean(expected && secret === expected);
-}
-
 export async function GET(req: Request) {
-  if (!adminOk(req)) {
+  if (!isAdmin(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -68,7 +61,7 @@ const reviewSchema = z
   .strict();
 
 export async function PATCH(req: Request) {
-  if (!adminOk(req)) {
+  if (!isAdmin(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
