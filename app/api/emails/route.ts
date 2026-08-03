@@ -1,22 +1,38 @@
 import { NextResponse } from "next/server";
 
+import { isAdmin } from "@/lib/admin-auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { getServiceSupabase } from "@/lib/supabase.server";
 
 export const runtime = "nodejs";
 
 /**
+ * Quote one CSV field.
+ *
+ * Every value is quoted, not just `name` — an unquoted comma in any column
+ * silently shifts every field after it. The leading-apostrophe guard defuses
+ * spreadsheet formula injection: `email` and `name` arrive from the public
+ * signup form, so a value like `=HYPERLINK("http://evil","click")` would
+ * otherwise execute when the export is opened in Excel or Sheets.
+ */
+function csvCell(value: unknown): string {
+  const s = value == null ? "" : String(value);
+  const guarded = /^[=+\-@\t\r]/.test(s) ? `'${s}` : s;
+  return `"${guarded.replaceAll('"', '""')}"`;
+}
+
+/**
  * Export collected emails for Desi.
- * GET /api/emails?secret=YOUR_ADMIN_EXPORT_SECRET
- * or header: x-admin-secret: YOUR_ADMIN_EXPORT_SECRET
+ * GET /api/emails            header: x-admin-secret: YOUR_ADMIN_EXPORT_SECRET
+ * GET /api/emails?format=csv same header
+ *
+ * The secret is header-only. It is never accepted from the query string,
+ * because this endpoint returns the entire subscriber list.
  */
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  const secret =
-    req.headers.get("x-admin-secret") || url.searchParams.get("secret") || "";
-  const expected = process.env.ADMIN_EXPORT_SECRET;
 
-  if (!expected || secret !== expected) {
+  if (!isAdmin(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -47,10 +63,11 @@ export async function GET(req: Request) {
     if (format === "csv") {
       const rows = [
         "email,name,source,created_at",
-        ...(data ?? []).map((row) => {
-          const name = (row.name ?? "").replaceAll('"', '""');
-          return `${row.email},"${name}",${row.source},${row.created_at}`;
-        }),
+        ...(data ?? []).map((row) =>
+          [row.email, row.name, row.source, row.created_at]
+            .map(csvCell)
+            .join(",")
+        ),
       ];
       return new NextResponse(rows.join("\n"), {
         headers: {

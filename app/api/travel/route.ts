@@ -50,6 +50,10 @@ async function googleLegs(points: TravelPoint[], apiKey: string): Promise<Travel
   url.searchParams.set("destinations", destinations);
   url.searchParams.set("mode", "driving");
   url.searchParams.set("units", "imperial");
+  // vibe-audit-ignore secrets-in-urls
+  // Google's Distance Matrix API only accepts its key as a query parameter.
+  // This fetch runs server-side in a route handler and the key comes from a
+  // server-only env var, so the key is never sent to the browser.
   url.searchParams.set("key", apiKey);
 
   const res = await fetch(url);

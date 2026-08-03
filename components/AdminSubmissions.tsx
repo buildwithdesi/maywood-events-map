@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 
 interface Submission {
@@ -30,7 +30,11 @@ export default function AdminPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/submissions?secret=${encodeURIComponent(s)}&status=pending`);
+      // Secret travels in a header, never the query string. A URL ends up in
+      // server access logs, any intermediate proxy, and browser history.
+      const res = await fetch("/api/admin/submissions?status=pending", {
+        headers: { "x-admin-secret": s },
+      });
       const data = (await res.json()) as {
         submissions?: Submission[];
         error?: string;
@@ -42,21 +46,12 @@ export default function AdminPage() {
       }
       setSubs(data.submissions || []);
       setUnlocked(true);
-      sessionStorage.setItem("maywood-admin-secret", s);
     } catch {
       setError("Network error");
     } finally {
       setLoading(false);
     }
   }
-
-  useEffect(() => {
-    const stored = sessionStorage.getItem("maywood-admin-secret");
-    if (stored) {
-      setSecret(stored);
-      load(stored);
-    }
-  }, []);
 
   async function review(id: string, status: "approved" | "rejected") {
     const res = await fetch("/api/admin/submissions", {

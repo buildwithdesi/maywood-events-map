@@ -32,6 +32,9 @@ async function geocode(address) {
   const url = new URL("https://maps.googleapis.com/maps/api/geocode/json");
   url.searchParams.set("address", address);
   url.searchParams.set("region", "us");
+  // vibe-audit-ignore secrets-in-urls
+  // Google's Geocoding API only accepts its key as a query parameter. This is
+  // a local build script and the key comes from a server-only env var.
   url.searchParams.set("key", apiKey);
 
   const res = await fetch(url);
