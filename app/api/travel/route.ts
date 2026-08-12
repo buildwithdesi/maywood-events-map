@@ -118,8 +118,13 @@ export async function POST(req: Request) {
   }
 
   const points = parsed.data.points;
-  const apiKey =
-    process.env.GOOGLE_MAPS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  // Server-only. Never fall back to a NEXT_PUBLIC_* variable here: anything with
+  // that prefix is compiled into the browser bundle the moment any client
+  // component reads it, which would hand this billable key to every visitor.
+  // The map itself needs no key at all (MapLibre + OpenFreeMap tiles), so a
+  // Google key should only ever exist server-side, for Distance Matrix and
+  // Geocoding. Without it this route falls back to straight-line estimates.
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
 
   try {
     if (apiKey) {
