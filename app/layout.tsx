@@ -20,6 +20,7 @@ const siteUrl = SITE_URL;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
+  alternates: { canonical: `${siteUrl}/` },
   title: "Maywood Summer 2026 Events Map",
   description:
     "An interactive map of Maywood, Illinois summer 2026 events. Village Hall in the Park, festivals, cookouts, health fairs, back to school bashes, and Maywood Fest. Filter by date and find what is happening near you.",
