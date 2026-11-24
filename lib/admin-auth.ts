@@ -65,29 +65,29 @@ function failureBucketKey(req: Request): string {
 
 /** Brute force is only infeasible if the secret is long and random. */
 export const MIN_SECRET_LENGTH = 32;
-let warnedShortSecret = false;
 
 /**
- * Admin gate with brute-force throttling. Returns a Response to send back when
+ * Admin gate with brute-force lockout. Returns a Response to send back when
  * the request must stop, or null when the caller is the admin.
  *
- * - A request with the CORRECT secret always gets through, even when its bucket
- *   is locked, so a stranger sharing the admin's address (or the "unknown"
- *   bucket) can never lock the real admin out.
- * - Wrong guesses count against the bucket. After 10 in 15 minutes, further
- *   wrong guesses get 429 + Retry-After.
- * - Assumes ADMIN_EXPORT_SECRET is at least MIN_SECRET_LENGTH random characters.
+ * - Fails closed: if ADMIN_EXPORT_SECRET is missing or shorter than
+ *   MIN_SECRET_LENGTH the route answers a generic 503 and never compares.
+ * - While a bucket is locked EVERY request gets the same 429 + Retry-After,
+ *   including one with the correct secret, so the response tells an attacker
+ *   nothing about whether a guess was right.
+ * - Escape hatch for the real admin: the app is also served directly at
+ *   maywood-events-map.vercel.app/tools/events/admin, where the bucket is keyed
+ *   on his own address instead of the shared hub address.
  */
 export function requireAdmin(req: Request): NextResponse | null {
   const expected = process.env.ADMIN_EXPORT_SECRET;
-  if (expected && expected.length < MIN_SECRET_LENGTH && !warnedShortSecret) {
-    warnedShortSecret = true;
-    console.warn(
-      `ADMIN_EXPORT_SECRET is shorter than ${MIN_SECRET_LENGTH} characters. Rotate it to a long random value.`
+  if (!expected || expected.length < MIN_SECRET_LENGTH) {
+    console.error("ADMIN_EXPORT_SECRET is missing or too short. Admin routes are disabled.");
+    return NextResponse.json(
+      { error: "Not configured." },
+      { status: 503, headers: NO_STORE }
     );
   }
-
-  if (isAdmin(req)) return null;
 
   const failKey = failureBucketKey(req);
   const lock = rateLimitPeek(failKey, FAIL_LIMIT, FAIL_WINDOW_MS);
@@ -97,6 +97,8 @@ export function requireAdmin(req: Request): NextResponse | null {
       { status: 429, headers: { ...NO_STORE, "Retry-After": String(lock.retryAfterSec) } }
     );
   }
+
+  if (isAdmin(req)) return null;
 
   rateLimit(failKey, FAIL_LIMIT, FAIL_WINDOW_MS);
   return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: NO_STORE });
