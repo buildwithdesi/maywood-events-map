@@ -1,4 +1,7 @@
 import { timingSafeEqual } from "crypto";
+import { NextResponse } from "next/server";
+
+import { rateLimit, rateLimitPeek } from "@/lib/rate-limit";
 
 /**
  * Shared admin gate for the export/review routes.
@@ -8,7 +11,7 @@ import { timingSafeEqual } from "crypto";
  * proxy in front of the app, and the admin's own browser history. A query
  * string is not a place to put a credential.
  */
-export function isAdmin(req: Request): boolean {
+function isAdmin(req: Request): boolean {
   const expected = process.env.ADMIN_EXPORT_SECRET;
   if (!expected) return false;
 
@@ -40,4 +43,42 @@ function safeEqual(a: string, b: string): boolean {
     return false;
   }
   return timingSafeEqual(bufA, bufB);
+}
+
+/** Responses that carry admin data or PII must never be cached by a proxy or the browser. */
+export const NO_STORE = { "Cache-Control": "no-store" } as const;
+
+const FAIL_LIMIT = 10;
+const FAIL_WINDOW_MS = 15 * 60_000;
+
+function clientIp(req: Request): string {
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0]?.trim() || "unknown";
+  return req.headers.get("x-real-ip") || "unknown";
+}
+
+/**
+ * Admin gate with brute-force lockout. Returns a Response to send back when the
+ * request must stop, or null when the caller is the admin.
+ *
+ * Only failed attempts count: 10 wrong secrets in 15 minutes from one IP locks
+ * that IP out (429 + Retry-After), even if the next guess is correct.
+ */
+export function requireAdmin(req: Request): NextResponse | null {
+  const ip = clientIp(req);
+  const failKey = `admin-fail:${ip}`;
+
+  const lock = rateLimitPeek(failKey, FAIL_LIMIT, FAIL_WINDOW_MS);
+  if (lock.blocked) {
+    return NextResponse.json(
+      { error: "Too many attempts. Try again later." },
+      { status: 429, headers: { ...NO_STORE, "Retry-After": String(lock.retryAfterSec) } }
+    );
+  }
+
+  if (!isAdmin(req)) {
+    rateLimit(failKey, FAIL_LIMIT, FAIL_WINDOW_MS);
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: NO_STORE });
+  }
+  return null;
 }

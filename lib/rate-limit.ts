@@ -30,3 +30,26 @@ export function rateLimit(
     return { ok: true, retryAfterSec: 0 };
   }
 }
+
+/**
+ * Read-only check: how many hits are in the window, without recording one.
+ * Used for lockouts, where only FAILED attempts should count toward the limit.
+ */
+export function rateLimitPeek(
+  key: string,
+  limit: number,
+  windowMs: number
+): { blocked: boolean; retryAfterSec: number } {
+  try {
+    const now = Date.now();
+    const recent = (buckets.get(key)?.timestamps ?? []).filter((t) => now - t < windowMs);
+    if (recent.length < limit) return { blocked: false, retryAfterSec: 0 };
+    const oldest = recent[0] ?? now;
+    return {
+      blocked: true,
+      retryAfterSec: Math.max(1, Math.ceil((windowMs - (now - oldest)) / 1000)),
+    };
+  } catch {
+    return { blocked: false, retryAfterSec: 0 };
+  }
+}

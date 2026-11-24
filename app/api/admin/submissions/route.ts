@@ -1,30 +1,38 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { isAdmin } from "@/lib/admin-auth";
+import { NO_STORE, requireAdmin } from "@/lib/admin-auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { getServiceSupabase } from "@/lib/supabase.server";
 
 export const runtime = "nodejs";
 
+const statusSchema = z.enum(["pending", "approved", "rejected"]);
+
 export async function GET(req: Request) {
-  if (!isAdmin(req)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const denied = requireAdmin(req);
+  if (denied) return denied;
 
   const limited = rateLimit("admin-subs", 60, 60_000);
   if (!limited.ok) {
-    return NextResponse.json({ error: "Too many requests." }, { status: 429 });
+    return NextResponse.json(
+      { error: "Too many requests." },
+      { status: 429, headers: { ...NO_STORE, "Retry-After": String(limited.retryAfterSec) } }
+    );
   }
 
-  const status = new URL(req.url).searchParams.get("status") || "pending";
+  const statusParam = new URL(req.url).searchParams.get("status") || "pending";
+  const status = statusSchema.safeParse(statusParam);
+  if (!status.success) {
+    return NextResponse.json({ error: "Invalid status." }, { status: 400, headers: NO_STORE });
+  }
 
   try {
     const supabase = getServiceSupabase();
     const { data, error } = await supabase
       .from("maywood_event_submissions")
       .select("*")
-      .eq("status", status)
+      .eq("status", status.data)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -45,7 +53,7 @@ export async function GET(req: Request) {
       })
     );
 
-    return NextResponse.json({ submissions: withUrls });
+    return NextResponse.json({ submissions: withUrls }, { headers: NO_STORE });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: "Not configured." }, { status: 503 });
@@ -61,8 +69,15 @@ const reviewSchema = z
   .strict();
 
 export async function PATCH(req: Request) {
-  if (!isAdmin(req)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const denied = requireAdmin(req);
+  if (denied) return denied;
+
+  const limited = rateLimit("admin-review", 60, 60_000);
+  if (!limited.ok) {
+    return NextResponse.json(
+      { error: "Too many requests." },
+      { status: 429, headers: { ...NO_STORE, "Retry-After": String(limited.retryAfterSec) } }
+    );
   }
 
   let body: unknown;

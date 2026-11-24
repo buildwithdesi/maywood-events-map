@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { isAdmin } from "@/lib/admin-auth";
+import { NO_STORE, requireAdmin } from "@/lib/admin-auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { getServiceSupabase } from "@/lib/supabase.server";
 
@@ -32,9 +32,8 @@ function csvCell(value: unknown): string {
 export async function GET(req: Request) {
   const url = new URL(req.url);
 
-  if (!isAdmin(req)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const denied = requireAdmin(req);
+  if (denied) return denied;
 
   const limited = rateLimit("emails-export", 30, 60_000);
   if (!limited.ok) {
@@ -42,7 +41,7 @@ export async function GET(req: Request) {
       { error: "Too many requests." },
       {
         status: 429,
-        headers: { "Retry-After": String(limited.retryAfterSec) },
+        headers: { ...NO_STORE, "Retry-After": String(limited.retryAfterSec) },
       }
     );
   }
@@ -73,14 +72,15 @@ export async function GET(req: Request) {
         headers: {
           "Content-Type": "text/csv; charset=utf-8",
           "Content-Disposition": 'attachment; filename="maywood-emails.csv"',
+          ...NO_STORE,
         },
       });
     }
 
-    return NextResponse.json({
-      count: data?.length ?? 0,
-      emails: data ?? [],
-    });
+    return NextResponse.json(
+      { count: data?.length ?? 0, emails: data ?? [] },
+      { headers: NO_STORE }
+    );
   } catch (err) {
     console.error("Email export error:", err);
     return NextResponse.json(
