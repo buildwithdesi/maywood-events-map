@@ -28,7 +28,7 @@ export function persistGateUnlock(email: string) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
   // 1 year — same browser, don't re-ask
   const maxAge = 60 * 60 * 24 * 365;
-  document.cookie = `${COOKIE_NAME}=1; path=${BASE_PATH}; max-age=${maxAge}; SameSite=Lax`;
+  document.cookie = `${COOKIE_NAME}=1; path=${BASE_PATH}; max-age=${maxAge}; SameSite=Lax; Secure`;
   sessionStorage.setItem("maywood-just-unlocked", "1");
 }
 

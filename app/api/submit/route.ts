@@ -31,6 +31,22 @@ const fieldsSchema = z
   })
   .strict();
 
+function looksLikeImage(b: Buffer, mime: string): boolean {
+  const starts = (sig: number[], at = 0) => sig.every((v, i) => b[at + i] === v);
+  switch (mime) {
+    case "image/jpeg":
+      return starts([0xff, 0xd8, 0xff]);
+    case "image/png":
+      return starts([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    case "image/gif":
+      return starts([0x47, 0x49, 0x46, 0x38]);
+    case "image/webp":
+      return starts([0x52, 0x49, 0x46, 0x46]) && starts([0x57, 0x45, 0x42, 0x50], 8);
+    default:
+      return false;
+  }
+}
+
 function clientIp(req: Request): string {
   const forwarded = req.headers.get("x-forwarded-for");
   if (forwarded) return forwarded.split(",")[0]?.trim() || "unknown";
@@ -45,6 +61,12 @@ export async function POST(req: Request) {
       { error: "Too many submissions. Try again later." },
       { status: 429, headers: { "Retry-After": String(limited.retryAfterSec) } }
     );
+  }
+
+  // Refuse oversized bodies before buffering them (photo cap is 5MB + fields).
+  const declaredLength = Number(req.headers.get("content-length") || 0);
+  if (declaredLength > 6 * 1024 * 1024) {
+    return NextResponse.json({ error: "Upload is too large." }, { status: 413 });
   }
 
   let form: FormData;
@@ -97,6 +119,14 @@ export async function POST(req: Request) {
       const ext = photo.type.split("/")[1] || "jpg";
       photoPath = `${randomUUID()}.${ext}`;
       const buffer = Buffer.from(await photo.arrayBuffer());
+      // The browser-supplied MIME type is only a claim. Check the file's real
+      // first bytes so a script or HTML file cannot be stored as "image/png".
+      if (!looksLikeImage(buffer, photo.type)) {
+        return NextResponse.json(
+          { error: "Photo must be JPG, PNG, WEBP, or GIF." },
+          { status: 400 }
+        );
+      }
       const { error: uploadError } = await supabase.storage
         .from("maywood-event-photos")
         .upload(photoPath, buffer, {

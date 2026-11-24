@@ -62,7 +62,9 @@ export async function POST(req: Request) {
 
     if (error) {
       if (error.code === "23505") {
-        return NextResponse.json({ ok: true, alreadyRegistered: true });
+        // Same response as a new signup, so this endpoint cannot be used to
+        // check whether a given email is already on the list.
+        return NextResponse.json({ ok: true });
       }
       console.error("Email gate insert failed:", error.message);
       return NextResponse.json(
