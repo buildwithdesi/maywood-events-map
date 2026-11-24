@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 
+import { withBasePath } from "@/lib/base-path";
 import { persistGateUnlock } from "@/lib/gate";
 
 interface EmailGateProps {
@@ -22,7 +23,7 @@ export default function EmailGate({ onUnlocked, intent = "map" }: EmailGateProps
     setLoading(true);
 
     try {
-      const res = await fetch("/api/gate", {
+      const res = await fetch(withBasePath("/api/gate"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

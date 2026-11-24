@@ -1,0 +1,15 @@
+{
+  "redirects": [
+    {
+      "source": "/:path((?!tools/events(?:/|$)).*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "maywood-events-map.vercel.app"
+        }
+      ],
+      "destination": "https://maywood.digitalalchemy.dev/tools/events/:path",
+      "permanent": true
+    }
+  ]
+}

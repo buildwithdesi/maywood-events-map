@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+import { BASE_PATH } from "./lib/base-path";
+
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
@@ -18,26 +20,13 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  basePath: BASE_PATH,
   async headers() {
+    // Source paths in headers() are matched without the basePath prefix, so
+    // one catch-all covers every page, API route and static asset.
     return [
       {
-        source: "/",
-        headers: securityHeaders,
-      },
-      {
-        source: "/planner",
-        headers: securityHeaders,
-      },
-      {
-        source: "/submit",
-        headers: securityHeaders,
-      },
-      {
-        source: "/admin",
-        headers: securityHeaders,
-      },
-      {
-        source: "/api/:path*",
+        source: "/:path*",
         headers: securityHeaders,
       },
     ];

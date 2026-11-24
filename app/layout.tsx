@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import ThemeProvider from "@/components/ThemeProvider";
+import { SITE_URL } from "@/lib/base-path";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -15,7 +16,7 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ["400", "500", "600"],
 });
 
-const siteUrl = "https://maywood-events-map.vercel.app";
+const siteUrl = SITE_URL;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

@@ -1,3 +1,4 @@
+import { withBasePath } from "@/lib/base-path";
 import type { PlannerPlan } from "@/lib/planner/types";
 
 const STORAGE_KEY = "maywood-planner-v1";
@@ -114,7 +115,7 @@ export function extractPlanToken(input: string): string | null {
 
 export function shareUrl(plan: PlannerPlan): string {
   const url = new URL(window.location.href);
-  url.pathname = "/planner";
+  url.pathname = withBasePath("/planner");
   url.searchParams.set("plan", encodePlan(plan));
   return url.toString();
 }

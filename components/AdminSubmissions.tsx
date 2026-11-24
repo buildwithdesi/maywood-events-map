@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 
+import { withBasePath } from "@/lib/base-path";
+
 interface Submission {
   id: string;
   title: string;
@@ -32,7 +34,7 @@ export default function AdminPage() {
     try {
       // Secret travels in a header, never the query string. A URL ends up in
       // server access logs, any intermediate proxy, and browser history.
-      const res = await fetch("/api/admin/submissions?status=pending", {
+      const res = await fetch(withBasePath("/api/admin/submissions?status=pending"), {
         headers: { "x-admin-secret": s },
       });
       const data = (await res.json()) as {
@@ -54,7 +56,7 @@ export default function AdminPage() {
   }
 
   async function review(id: string, status: "approved" | "rejected") {
-    const res = await fetch("/api/admin/submissions", {
+    const res = await fetch(withBasePath("/api/admin/submissions"), {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",

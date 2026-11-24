@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import DaFooter from "@/components/DaFooter";
 import SiteNav from "@/components/SiteNav";
+import { withBasePath } from "@/lib/base-path";
 import { CATEGORIES, CATEGORY_MAP, type CategoryId } from "@/lib/events";
 import { downloadItinerary, printItinerary } from "@/lib/planner/exportHtml";
 import { downloadIcs } from "@/lib/planner/ics";
@@ -110,7 +111,7 @@ export default function MaywoodPlanner() {
     async function loadTravel() {
       setTravelLoading(true);
       try {
-        const res = await fetch("/api/travel", {
+        const res = await fetch(withBasePath("/api/travel"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

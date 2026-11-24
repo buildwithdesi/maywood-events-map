@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import DaFooter from "@/components/DaFooter";
 import SiteNav from "@/components/SiteNav";
+import { withBasePath } from "@/lib/base-path";
 import { CATEGORIES } from "@/lib/events";
 
 export default function SubmitEventForm() {
@@ -21,7 +22,7 @@ export default function SubmitEventForm() {
     const data = new FormData(form);
 
     try {
-      const res = await fetch("/api/submit", { method: "POST", body: data });
+      const res = await fetch(withBasePath("/api/submit"), { method: "POST", body: data });
       const json = (await res.json()) as { error?: string };
       if (!res.ok) {
         setError(json.error || "Submission failed.");
