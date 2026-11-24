@@ -21,9 +21,9 @@ const siteUrl = SITE_URL;
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   alternates: { canonical: `${siteUrl}/` },
-  title: "Maywood Summer 2026 Events Map",
+  title: "Maywood Events Map: Summer 2026 Archive",
   description:
-    "An interactive map of Maywood, Illinois summer 2026 events. Village Hall in the Park, festivals, cookouts, health fairs, back to school bashes, and Maywood Fest. Filter by date and find what is happening near you.",
+    "A map of Maywood, Illinois events listed for summer 2026 (July to September), including Village Hall in the Park, festivals, cookouts, health fairs, back to school events, and Maywood Fest. These events have passed. Community-compiled listings, not an official Village of Maywood record.",
   keywords: [
     "Maywood",
     "Maywood Illinois",
@@ -36,9 +36,9 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Digital Alchemy Software" }],
   openGraph: {
-    title: "Maywood Summer 2026 Events Map",
+    title: "Maywood Events Map: Summer 2026 Archive",
     description:
-      "Find every Maywood summer 2026 event on one interactive map. Filter by date and category.",
+      "Browse the Maywood summer 2026 events listed on this archive map. These events have passed.",
     url: siteUrl,
     siteName: "Maywood Events Map",
     locale: "en_US",
@@ -46,9 +46,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Maywood Summer 2026 Events Map",
+    title: "Maywood Events Map: Summer 2026 Archive",
     description:
-      "Find every Maywood summer 2026 event on one interactive map. Filter by date and category.",
+      "Browse the Maywood summer 2026 events listed on this archive map. These events have passed.",
   },
   robots: { index: true, follow: true },
 };

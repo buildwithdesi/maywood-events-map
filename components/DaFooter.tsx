@@ -11,7 +11,7 @@ export default function DaFooter({ className = "" }: { className?: string }) {
         <p className="text-[11px] leading-relaxed text-ink-soft">
           <span className="font-display font-semibold text-ink">Digital Alchemy</span>
           <span className="mx-1.5 text-line">·</span>
-          Built for Maywood by{" "}
+          An independent project by{" "}
           <a
             href="https://www.linkedin.com/in/desmond-baker-jr-896892103/"
             target="_blank"
@@ -20,6 +20,9 @@ export default function DaFooter({ className = "" }: { className?: string }) {
           >
             Desmond Baker Jr.
           </a>
+          {" "}
+          Not an official Village of Maywood site. Listings are community-compiled
+          and may be out of date or wrong. Confirm details with the host.
         </p>
         <div className="flex shrink-0 items-center gap-2">
           <a

@@ -68,7 +68,7 @@ export function buildItineraryHtml(
     <h1>${esc(plan.name || "My")} · Maywood Summer '26</h1>
     <p class="sub">${saved.length} event${saved.length === 1 ? "" : "s"} planned</p>
     ${cards || "<p>No events saved yet.</p>"}
-    <p class="foot">Built by Digital Alchemy · digitalalchemy.dev</p>
+    <p class="foot">Built by Digital Alchemy · digitalalchemy.dev. Community-compiled listings, not an official Village of Maywood record. Confirm details with the host.</p>
   </div>
 </body>
 </html>`;

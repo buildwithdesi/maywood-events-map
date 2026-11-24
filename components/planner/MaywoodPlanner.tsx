@@ -214,10 +214,10 @@ export default function MaywoodPlanner() {
         <div className="mx-auto flex max-w-md flex-col gap-4 px-4 py-16">
           <SiteNav />
           <h1 className="font-display text-3xl font-bold text-ink">
-            Plan your Maywood summer
+            Browse the Maywood summer 2026 listings
           </h1>
           <p className="text-sm text-ink-soft">
-            Every event from the map lives here too. Save what you want, sort your day,
+            Every event listed on the map is here too. These events have passed, so confirm anything with the host before you act on it. Save what you want, sort your day,
             see travel time between stops, then export or share. The map is for looking
             around. This is for building your personal itinerary.
           </p>
@@ -257,10 +257,10 @@ export default function MaywoodPlanner() {
                 {plan.name}&apos;s plan
               </p>
               <h1 className="font-display text-xl font-bold text-ink">
-                Maywood Summer Planner
+                Maywood Summer 2026 Planner
               </h1>
               <p className="text-xs text-ink-soft">
-                All {PLANNER_EVENTS.length} events · save, order your day, travel times
+                {PLANNER_EVENTS.length} listed events · save, order your day, travel times
               </p>
             </div>
             <SiteNav />

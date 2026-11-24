@@ -343,10 +343,10 @@ export default function MaywoodMap() {
               </span>
               <div className="min-w-0 flex-1">
                 <h1 className="font-display text-[17px] font-bold leading-tight tracking-tight text-ink sm:text-lg">
-                  Maywood Summer 2026
+                  Maywood Summer 2026 archive
                 </h1>
                 <p className="mt-1 text-xs leading-snug text-ink-soft">
-                  {filteredEvents.length} events across the village
+                  {filteredEvents.length} listed events (past)
                 </p>
               </div>
             </div>

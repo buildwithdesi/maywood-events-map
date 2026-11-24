@@ -1,6 +1,6 @@
-# Maywood Summer 2026 Events Map
+# Maywood Events Map: Summer 2026 Archive
 
-An interactive map of every summer 2026 event across the Village of Maywood, Illinois. Filter by day and category, tap a pin, read the details, and get one-tap directions. Built for Maywood residents.
+An archive map of summer 2026 events listed for the Village of Maywood, Illinois (community-compiled, not an official Village record). Filter by day and category, tap a pin, read the details, and get one-tap directions. Built for Maywood residents.
 
 The map runs on MapLibre GL with free OpenFreeMap vector tiles. **No API key, no billing account, no usage caps to configure.** It just renders.
 

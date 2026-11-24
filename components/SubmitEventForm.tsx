@@ -60,8 +60,8 @@ export default function SubmitEventForm() {
               Got it. Thanks!
             </h2>
             <p className="mt-2 text-sm text-ink-soft">
-              Your event is in the review queue. Once approved, it shows up on the
-              map and planner.
+              We received your submission for review. If it is approved it may be added
+              to the map and planner. We do not promise that every submission will be listed.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <button
@@ -81,8 +81,10 @@ export default function SubmitEventForm() {
         ) : (
           <form onSubmit={onSubmit} className="flex flex-col gap-3">
             <p className="text-sm text-ink-soft">
-              Missing from the map? Send the details (and a photo if you have one).
-              We review before it goes live.
+              Missing from the map? Send the details (and a photo if you have one). We
+              review each submission and may decline it. Your name and email are stored
+              with your submission so we can follow up about it. They are not shown on the
+              map.
             </p>
 
             <Field label="Event title *" name="title" required />

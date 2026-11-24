@@ -69,7 +69,7 @@ export default function EmailGate({ onUnlocked, intent = "map" }: EmailGateProps
       <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-lg items-center justify-center px-4 py-8">
         <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#12131A] p-5 shadow-2xl sm:p-6">
           <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-[#40FF78]">
-            Maywood · Summer 2026
+            Maywood · Summer 2026 archive
           </p>
           <h1 className="mt-2 font-display text-2xl font-bold tracking-tight text-white sm:text-[1.75rem]">
             Enter to explore Maywood
@@ -140,9 +140,11 @@ export default function EmailGate({ onUnlocked, intent = "map" }: EmailGateProps
 
           <div className="mt-4 border-t border-white/10 pt-3">
             <p className="text-[11px] leading-snug text-[#F5F5F7]/50">
-              By continuing you agree we can email you about Maywood community events and
-              Digital Alchemy updates. No spam. You will not see this gate again on this
-              browser.
+              By continuing you agree that Digital Alchemy may email you about Maywood
+              community events and Digital Alchemy updates. We store your email, your
+              name if you give one, and your browser type. To be removed from the list,
+              contact us through digitalalchemy.dev. You will not see this gate again on
+              this browser.
             </p>
             <div className="mt-3 flex flex-col gap-2 sm:flex-row">
               <a
